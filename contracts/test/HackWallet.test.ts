@@ -2,7 +2,6 @@ import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
 import { expect } from "chai";
 import hre from "hardhat";
 
-// PoC reentrancy
 describe("HackWallet test ERC721", function () {
   async function deployFixture() {
     const [owner] = await hre.ethers.getSigners();
@@ -16,6 +15,7 @@ describe("HackWallet test ERC721", function () {
     return { hackWallet, erc721, owner };
   }
 
+  // PoC reentrancy
   it("SafeMint to HackWallet", async function () {
     const { hackWallet, erc721 } = await loadFixture(deployFixture);
 
