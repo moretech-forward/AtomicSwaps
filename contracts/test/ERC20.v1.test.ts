@@ -17,12 +17,12 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens v1", function () {
   async function deployA() {
     const [partyA, partyB] = await hre.ethers.getSigners();
 
-    const TokenA = await hre.ethers.getContractFactory("MockToken", {
+    const TokenA = await hre.ethers.getContractFactory("MockTokenERC20", {
       signer: partyA,
     });
     const tokenA = await TokenA.deploy();
 
-    const TokenB = await hre.ethers.getContractFactory("MockToken", {
+    const TokenB = await hre.ethers.getContractFactory("MockTokenERC20", {
       signer: partyB,
     });
     const tokenB = await TokenB.deploy();
