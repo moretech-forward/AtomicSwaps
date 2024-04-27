@@ -27,6 +27,10 @@ contract AtomicERC20Swap {
     /// @dev The contract holds and transfers tokens of this ERC20 type.
     IERC20 public immutable token;
 
+    /// @notice Amount of tokens for swap
+    /// @dev Used when calling the deposit function
+    uint256 public immutable amount;
+
     /// @notice Emitted when the swap is confirmed with the correct secret key.
     /// @param key The secret key that was used to confirm the swap.
     event Swap(string indexed key);
@@ -38,20 +42,21 @@ contract AtomicERC20Swap {
     constructor(
         address _token,
         address _otherParty,
-        uint _deadline,
-        bytes32 _hashKey
+        uint256 _deadline,
+        bytes32 _hashKey,
+        uint256 _amount
     ) payable {
         owner = msg.sender;
         token = IERC20(_token);
         otherParty = _otherParty;
         deadline = _deadline;
         hashKey = _hashKey;
+        amount = _amount;
     }
 
     /// @notice Deposits ERC20 tokens into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer the specified `amount` of tokens on their behalf.
-    /// @param amount The amount of ERC20 tokens to be deposited into the contract.
-    function deposit(uint amount) external {
+    function deposit() external {
         require(
             token.transferFrom(owner, address(this), amount),
             "Transfer failed"

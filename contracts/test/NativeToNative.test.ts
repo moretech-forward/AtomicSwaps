@@ -13,7 +13,7 @@ const amountA = 1000;
 const amountB = 10000;
 
 // A swaps 1000 native tokens of network A for 10000 native tokens of network B
-describe("Cross-Chain Atomic Swap Native Tokens", function () {
+describe("Native To Native", function () {
   async function deployA() {
     const [partyA, partyB] = await hre.ethers.getSigners();
 

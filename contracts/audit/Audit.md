@@ -14,6 +14,9 @@
 #### MEDIUM
 
 The vulnerability is falsely positive because it requires the output to be available after the `deadline`.
+The vulnerability is relevant for strict equals.
+
+And SolidityScan says that using non-strict inequality in require consumes more gas.
 
 #### LOW
 

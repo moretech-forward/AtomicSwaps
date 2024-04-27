@@ -11,7 +11,7 @@ const timeout = 600;
 const amountA = 1000;
 
 // A swaps 1000 ERC20 tokens of network A for 1 ERC721 token of network B
-describe("Cross-Chain Atomic Swap ERC20 To ERC721", function () {
+describe("ERC20 To ERC721", function () {
   async function deployA() {
     const [partyA, partyB] = await hre.ethers.getSigners();
 
@@ -37,11 +37,17 @@ describe("Cross-Chain Atomic Swap ERC20 To ERC721", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(tokenA, partyB, deadline, hashKeyA);
+    const erc20A = await ERC20A.deploy(
+      tokenA,
+      partyB,
+      deadline,
+      hashKeyA,
+      amountA
+    );
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(amountA);
+    await erc20A.deposit();
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -87,21 +93,8 @@ describe("Cross-Chain Atomic Swap ERC20 To ERC721", function () {
     ).to.changeTokenBalance(tokenA, partyB, amountA);
   });
 
-  it("Successful withdrawal A", async function () {
-    const { erc20A, partyA, deadline, tokenA } = await loadFixture(deployA);
-
-    // B has not deployed his contract, after the deadline A can withdraw funds
-    await time.increaseTo(deadline);
-
-    await expect(erc20A.connect(partyA).withdrawal()).to.changeTokenBalance(
-      tokenA,
-      partyA,
-      amountA
-    );
-  });
-
-  it("Successful withdrawal B", async function () {
-    const { partyA, partyB, keyA, hashKeyA, deadline, tokenB, tokenA } =
+  it("Successful withdrawal B (ERC721)", async function () {
+    const { partyA, partyB, hashKeyA, deadline, tokenB, tokenA } =
       await loadFixture(deployA);
 
     // B created a contract by fixing the time of execution
@@ -122,17 +115,6 @@ describe("Cross-Chain Atomic Swap ERC20 To ERC721", function () {
       tokenB,
       partyB,
       1
-    );
-  });
-
-  it("Unsuccessful withdrawal", async function () {
-    const { erc20A, partyA } = await loadFixture(deployA);
-
-    // B has not deployed his contract, after the deadline A can withdraw funds
-    //  await time.increaseTo(deadline);
-
-    await expect(erc20A.connect(partyA).withdrawal()).to.be.revertedWith(
-      "Swap not yet expired"
     );
   });
 });

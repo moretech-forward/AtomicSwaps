@@ -13,7 +13,7 @@ const amountA = 1000;
 const amountB = 10000;
 
 // A swaps 1000 ERC20 tokens of network A for 10000 ERC20 tokens of network B
-describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
+describe("ERC20 To ERC20", function () {
   async function deployA() {
     const [partyA, partyB] = await hre.ethers.getSigners();
 
@@ -39,11 +39,17 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(tokenA, partyB, deadline, hashKeyA);
+    const erc20A = await ERC20A.deploy(
+      tokenA,
+      partyB,
+      deadline,
+      hashKeyA,
+      amountA
+    );
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(amountA);
+    await erc20A.deposit();
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -69,11 +75,17 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     const ERC20B = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyB,
     });
-    const erc20B = await ERC20B.deploy(tokenB, partyA, deadline, hashKeyA);
+    const erc20B = await ERC20B.deploy(
+      tokenB,
+      partyA,
+      deadline,
+      hashKeyA,
+      amountB
+    );
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).approve(erc20B, amountB);
-    await erc20B.deposit(amountB);
+    await erc20B.deposit();
     expect(await tokenB.balanceOf(erc20B)).to.be.equal(amountB);
 
     // A checks the contract B
@@ -89,7 +101,7 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     ).to.changeTokenBalance(tokenA, partyB, amountA);
   });
 
-  it("Successful withdrawal", async function () {
+  it("Successful withdrawal A (ERC20)", async function () {
     const { erc20A, partyA, deadline, tokenA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds

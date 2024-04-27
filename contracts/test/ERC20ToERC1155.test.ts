@@ -11,7 +11,7 @@ const timeout = 600;
 const amountA = 1000;
 
 // A swaps 1000 ERC20 tokens of network A for 1 ERC1155 token of network B
-describe("Cross-Chain Atomic Swap ERC20 To ERC1155", function () {
+describe("ERC20 To ERC1155", function () {
   async function deployA() {
     const [partyA, partyB] = await hre.ethers.getSigners();
 
@@ -37,11 +37,17 @@ describe("Cross-Chain Atomic Swap ERC20 To ERC1155", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(tokenA, partyB, deadline, hashKeyA);
+    const erc20A = await ERC20A.deploy(
+      tokenA,
+      partyB,
+      deadline,
+      hashKeyA,
+      amountA
+    );
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(amountA);
+    await erc20A.deposit();
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -96,20 +102,7 @@ describe("Cross-Chain Atomic Swap ERC20 To ERC1155", function () {
     ).to.changeTokenBalance(tokenA, partyB, amountA);
   });
 
-  it("Successful withdrawal A", async function () {
-    const { erc20A, partyA, deadline, tokenA } = await loadFixture(deployA);
-
-    // B has not deployed his contract, after the deadline A can withdraw funds
-    await time.increaseTo(deadline);
-
-    await expect(erc20A.connect(partyA).withdrawal()).to.changeTokenBalance(
-      tokenA,
-      partyA,
-      amountA
-    );
-  });
-
-  it("Successful withdrawal B", async function () {
+  it("Successful withdrawal B (ERC1155)", async function () {
     const { partyA, partyB, keyA, hashKeyA, deadline, tokenB, tokenA } =
       await loadFixture(deployA);
     const id = 0;
@@ -139,16 +132,5 @@ describe("Cross-Chain Atomic Swap ERC20 To ERC1155", function () {
     await erc1155B.connect(partyB).withdrawal();
     expect(await tokenB.balanceOf(partyB, id)).to.be.equal(1); // 1 = NFT
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(0); // 1 = NFT
-  });
-
-  it("Unsuccessful withdrawal", async function () {
-    const { erc20A, partyA } = await loadFixture(deployA);
-
-    // B has not deployed his contract, after the deadline A can withdraw funds
-    //  await time.increaseTo(deadline);
-
-    await expect(erc20A.connect(partyA).withdrawal()).to.be.revertedWith(
-      "Swap not yet expired"
-    );
   });
 });
