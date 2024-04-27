@@ -57,7 +57,7 @@ contract AtomicNativeSwap {
     /// @notice Allows the owner to withdraw the Ether if the swap is not completed by the deadline.
     /// @dev This function checks if the current timestamp is past the deadline, and if so, it allows the owner to withdraw the Ether.
     function withdrawal() external {
-        require(block.timestamp >= deadline, "Swap not yet expired");
+        require(block.timestamp > deadline, "Swap not yet expired");
         payable(owner).transfer(address(this).balance);
     }
 }

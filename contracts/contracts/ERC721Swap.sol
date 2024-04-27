@@ -77,7 +77,7 @@ contract AtomicERC721Swap is ERC721TokenReceiver {
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
     function withdrawal() external {
-        require(block.timestamp >= deadline, "Swap not yet expired");
+        require(block.timestamp > deadline, "Swap not yet expired");
         token.safeTransferFrom(address(this), owner, id);
     }
 }
