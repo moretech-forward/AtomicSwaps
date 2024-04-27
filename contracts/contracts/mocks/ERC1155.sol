@@ -8,7 +8,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /// @title MockTokenERC1155
 /// @notice This contract creates a mock ERC1155 token for testing and demonstration purposes.
 contract MockTokenERC1155 is ERC1155, Ownable {
-    constructor() ERC1155("") Ownable(msg.sender) {}
+    constructor() ERC1155("") Ownable(msg.sender) {
+        mint(msg.sender, 0, 1);
+    }
 
     function mint(
         address account,

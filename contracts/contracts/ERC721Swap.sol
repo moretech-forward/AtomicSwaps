@@ -2,10 +2,11 @@
 pragma solidity ^0.8.24;
 
 import "./interfaces/IERC721.sol";
+import "./TokenReceivers/ERC721TokenReceiver.sol";
 
 /// @title AtomicERC721Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier that can be exchanged for any other asset
-contract AtomicERC721Swap {
+contract AtomicERC721Swap is ERC721TokenReceiver {
     /// @notice The owner of the contract who initiates the swap.
     /// @dev Set at deployment and cannot be changed.
     address public immutable owner;

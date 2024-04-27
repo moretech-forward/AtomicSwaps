@@ -9,11 +9,9 @@ import { generateRandomHexString } from "./common";
 const timeout = 600;
 // How much should A fix in the contract
 const amountA = 1000;
-// How much should B fix in the contract
-const amountB = 10000;
 
-// A swaps 1000 ERC20 tokens of network A for 10000 ERC20 tokens of network B
-describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
+// A swaps 1000 ERC20 tokens of network A for 1 ERC1155 token of network B
+describe("Cross-Chain Atomic Swap ERC20 To ERC1155", function () {
   async function deployA() {
     const [partyA, partyB] = await hre.ethers.getSigners();
 
@@ -22,7 +20,7 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     });
     const tokenA = await TokenA.deploy();
 
-    const TokenB = await hre.ethers.getContractFactory("MockTokenERC20", {
+    const TokenB = await hre.ethers.getContractFactory("MockTokenERC1155", {
       signer: partyB,
     });
     const tokenB = await TokenB.deploy();
@@ -42,7 +40,8 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     const erc20A = await ERC20A.deploy(tokenA, partyB, deadline, hashKeyA);
 
     // A transferred the tokens to the contract
-    await tokenA.connect(partyA).transfer(erc20A, amountA);
+    await tokenA.connect(partyA).approve(erc20A, amountA);
+    await erc20A.deposit(amountA);
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -61,25 +60,35 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     const { erc20A, partyA, partyB, keyA, hashKeyA, deadline, tokenB, tokenA } =
       await loadFixture(deployA);
 
+    const id = 0n;
+    const value = 1n;
+
     // After A has created a contract, B checks the balance and deploys its
     // where tokens are locked with key A
 
     // B created a contract by fixing the time of execution
-    const ERC20B = await hre.ethers.getContractFactory("AtomicERC20Swap", {
+    const ERC1155B = await hre.ethers.getContractFactory("AtomicERC1155Swap", {
       signer: partyB,
     });
-    const erc20B = await ERC20B.deploy(tokenB, partyA, deadline, hashKeyA);
+    const erc1155B = await ERC1155B.deploy(
+      tokenB,
+      partyA,
+      deadline,
+      hashKeyA,
+      value,
+      id
+    );
 
     // B transferred the tokens to the contract
-    await tokenB.connect(partyB).transfer(erc20B, amountB);
-    expect(await tokenB.balanceOf(erc20B)).to.be.equal(amountB);
+    await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
+    await erc1155B.connect(partyB).deposit();
+    expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B
     // If A is satisfied, he takes the funds from B's contract and publishes the key
 
-    await expect(
-      erc20B.connect(partyA).confirmSwap(keyA)
-    ).to.changeTokenBalance(tokenB, partyA, amountB);
+    await erc1155B.connect(partyA).confirmSwap(keyA);
+    expect(await tokenB.balanceOf(partyA, id)).to.be.equal(1); // 1 = NFT
 
     // B sees the key in the contract events and opens contract A
     await expect(
@@ -87,7 +96,7 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
     ).to.changeTokenBalance(tokenA, partyB, amountA);
   });
 
-  it("Successful withdrawal", async function () {
+  it("Successful withdrawal A", async function () {
     const { erc20A, partyA, deadline, tokenA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds
@@ -98,6 +107,38 @@ describe("Cross-Chain Atomic Swap ERC20 Tokens", function () {
       partyA,
       amountA
     );
+  });
+
+  it("Successful withdrawal B", async function () {
+    const { partyA, partyB, keyA, hashKeyA, deadline, tokenB, tokenA } =
+      await loadFixture(deployA);
+    const id = 0;
+    const value = 1;
+
+    // B created a contract by fixing the time of execution
+    const ERC1155B = await hre.ethers.getContractFactory("AtomicERC1155Swap", {
+      signer: partyB,
+    });
+    const erc1155B = await ERC1155B.deploy(
+      tokenB,
+      partyA,
+      deadline,
+      hashKeyA,
+      value,
+      id
+    );
+
+    // B transferred the tokens to the contract
+    await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
+    await erc1155B.deposit();
+    expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
+
+    // B has not deployed his contract, after the deadline A can withdraw funds
+    await time.increaseTo(deadline);
+
+    await erc1155B.connect(partyB).withdrawal();
+    expect(await tokenB.balanceOf(partyB, id)).to.be.equal(1); // 1 = NFT
+    expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(0); // 1 = NFT
   });
 
   it("Unsuccessful withdrawal", async function () {

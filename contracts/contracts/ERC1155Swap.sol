@@ -2,8 +2,9 @@
 pragma solidity ^0.8.24;
 
 import "./interfaces/IERC1155.sol";
+import "./TokenReceivers/ERC1155TokenReceiver.sol";
 
-contract AtomicERC1155Swap {
+contract AtomicERC1155Swap is ERC1155TokenReceiver {
     /// @notice The owner of the contract who initiates the swap.
     address public immutable owner;
 
@@ -59,7 +60,7 @@ contract AtomicERC1155Swap {
     /// @notice Deposits ERC1155 token into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer NFT on their behalf.
     function deposit() external {
-        token.safeTransferFrom(owner, address(this), id, value, "");
+        token.safeTransferFrom(owner, address(this), id, value, "0x00");
     }
 
     /// @notice Confirms the swap and transfers the ERC1155 token to the other party if the provided key matches the hash key.

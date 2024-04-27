@@ -30,11 +30,10 @@ describe("NFTWallet test ERC1155", function () {
   it("SafeTransferFrom to NFTWallet", async function () {
     const { erc1155, owner, nftwallet } = await loadFixture(deployFixture);
 
-    await expect(erc1155.mint(owner, 0, 1)).to.emit(erc1155, "TransferSingle");
-    expect(await erc1155.balanceOf(owner, 0)).to.be.equal(1);
     await expect(
       erc1155.safeTransferFrom(owner, nftwallet, 0, 1, "0x00")
     ).to.emit(erc1155, "TransferSingle");
+    expect(await erc1155.balanceOf(nftwallet, 0)).to.be.equal(1);
   });
 
   it("Mint to Wallet", async function () {
@@ -49,8 +48,6 @@ describe("NFTWallet test ERC1155", function () {
   it("SafeTransferFrom to Wallet", async function () {
     const { erc1155, owner, wallet } = await loadFixture(deployFixture);
 
-    await expect(erc1155.mint(owner, 0, 1)).to.emit(erc1155, "TransferSingle");
-    expect(await erc1155.balanceOf(owner, 0)).to.be.equal(1);
     await expect(
       erc1155.safeTransferFrom(owner, wallet, 0, 1, "0x00")
     ).to.be.revertedWithCustomError(erc1155, "ERC1155InvalidReceiver");

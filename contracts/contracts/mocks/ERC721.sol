@@ -10,7 +10,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract MockTokenERC721 is ERC721, Ownable {
     uint256 private _nextTokenId;
 
-    constructor() ERC721("MyToken", "MTK") Ownable(msg.sender) {}
+    constructor() ERC721("MyToken", "MTK") Ownable(msg.sender) {
+        safeMint(msg.sender);
+    }
 
     function safeMint(address to) public onlyOwner {
         uint256 tokenId = _nextTokenId++;
