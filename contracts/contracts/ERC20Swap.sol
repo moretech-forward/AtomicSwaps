@@ -76,8 +76,7 @@ contract AtomicERC20Swap {
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
     function withdrawal() external {
         require(block.timestamp > deadline, "Swap not yet expired");
-        IERC20 tokenCash = token;
-        uint256 balance = tokenCash.balanceOf(address(this));
-        require(tokenCash.transfer(owner, balance), "Transfer failed");
+        uint256 balance = token.balanceOf(address(this));
+        require(token.transfer(owner, balance), "Transfer failed");
     }
 }

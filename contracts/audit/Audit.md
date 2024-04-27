@@ -1,10 +1,23 @@
 # Audit
 
+## Scope
+
+![alt text](image-1.png)
+
 ## Findings
 
 ### [solidityscan.com](solidityscan.com)
 
-#### Analysis
+![alt text](image-2.png)
+![alt text](image.png)
+
+#### MEDIUM
+
+The vulnerability is falsely positive because it requires the output to be available after the `deadline`.
+
+#### LOW
+
+- `SELFBALANCE()` optimizes the compiler
 
 ### Slither
 
