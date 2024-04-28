@@ -12,8 +12,8 @@ To protect against a timing attack, where party A reveals the key at the last mo
 
 ### [solidityscan.com](solidityscan.com)
 
-![alt text](image-2.png)
 ![alt text](image.png)
+![alt text](image-2.png)
 
 #### MEDIUM
 
