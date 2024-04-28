@@ -8,12 +8,13 @@
 
 ### Manual audit
 
-To protect against a timing attack, where party A reveals the key at the last moment and prevents party B from confirming the exchange because the exchange time ends at the same moment, a delay of one day is added for party A that initiates the exchange.
+1. To protect against a timing attack, where party A reveals the key at the last moment and prevents party B from confirming the exchange because the exchange time ends at the same moment, a delay of one day is added for party A that initiates the exchange.
+2. To save a little gas, it is possible to put `payable` on all functions, but this is dangerous as it may cause the user's assets to be accidentally frozen in the **contract**. When adding a contract to the marketplace, the interface itself offers to send `msg.value`, because the factory sees that the `payable` functions are `payable`. The constructor can be left `payable` because the interface does not prompt the user to transfer funds
 
 ### [solidityscan.com](solidityscan.com)
 
-![alt text](image.png)
 ![alt text](image-2.png)
+![alt text](image.png)
 
 #### MEDIUM
 
@@ -24,7 +25,13 @@ And SolidityScan says that using non-strict inequality in require consumes more 
 
 #### LOW
 
+- `MISSING EVENTS` is a false positive.
+- Other errors related to the compiler version do not require attention
+
+#### GAS
+
 - `SELFBALANCE()` optimizes the compiler
+- `caching` is a false positive.
 
 ### Slither
 
