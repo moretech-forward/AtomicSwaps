@@ -54,10 +54,10 @@ contract AtomicERC721Swap is ERC721TokenReceiver {
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
     function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
-        token.safeTransferFrom(owner, address(this), id);
         hashKey = _hashKey;
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
+        token.safeTransferFrom(owner, address(this), id);
     }
 
     /// @notice Confirms the swap and transfers the ERC721 token to the other party if the provided key matches the hash key.

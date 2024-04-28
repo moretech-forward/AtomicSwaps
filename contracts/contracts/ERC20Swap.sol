@@ -55,14 +55,13 @@ contract AtomicERC20Swap {
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
     /// @param _flag TODO
     function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
+        hashKey = _hashKey;
+        if (_flag) deadline = _deadline + DAY;
+        else deadline = _deadline;
         require(
             token.transferFrom(owner, address(this), amount),
             "Transfer failed"
         );
-        hashKey = _hashKey;
-
-        if (_flag) deadline = _deadline + DAY;
-        else deadline = _deadline;
     }
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.

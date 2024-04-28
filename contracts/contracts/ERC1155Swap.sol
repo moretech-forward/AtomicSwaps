@@ -61,11 +61,10 @@ contract AtomicERC1155Swap is ERC1155TokenReceiver {
     /// @param _deadline The Unix timestamp after which the swap can be cancelled.
     /// @param _flag TODO
     function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
-        token.safeTransferFrom(owner, address(this), id, value, "0x00");
-        hashKey = _hashKey;
         hashKey = _hashKey;
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
+        token.safeTransferFrom(owner, address(this), id, value, "0x00");
     }
 
     /// @notice Confirms the swap and transfers the ERC1155 token to the other party if the provided key matches the hash key.

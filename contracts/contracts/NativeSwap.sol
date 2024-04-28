@@ -50,7 +50,10 @@ contract AtomicNativeSwap {
         uint256 _deadline,
         bool _flag
     ) external payable {
-        require(msg.value == amount);
+        require(
+            msg.value == amount,
+            "The deposit amount is not equal to the stated amount"
+        );
         hashKey = _hashKey;
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
