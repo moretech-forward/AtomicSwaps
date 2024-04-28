@@ -10,6 +10,9 @@ const timeout = 600;
 // How much should A fix in the contract
 const amountA = 1000;
 
+const flagA = true;
+const flagB = false;
+
 // A swaps 1000 ERC20 tokens of network A for 1 ERC1155 token of network B
 describe("ERC20 To ERC1155", function () {
   async function deployA() {
@@ -40,14 +43,12 @@ describe("ERC20 To ERC1155", function () {
     const erc20A = await ERC20A.deploy(
       tokenA,
       partyB,
-      deadline,
-      hashKeyA,
-      amountA
+      amountA      
     );
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit();
+    await erc20A.deposit(hashKeyA, deadline,flagA);
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -79,15 +80,13 @@ describe("ERC20 To ERC1155", function () {
     const erc1155B = await ERC1155B.deploy(
       tokenB,
       partyA,
-      deadline,
-      hashKeyA,
       value,
       id
     );
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
-    await erc1155B.connect(partyB).deposit();
+    await erc1155B.connect(partyB).deposit(hashKeyA, deadline, flagB);
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B
@@ -115,15 +114,13 @@ describe("ERC20 To ERC1155", function () {
     const erc1155B = await ERC1155B.deploy(
       tokenB,
       partyA,
-      deadline,
-      hashKeyA,
       value,
       id
     );
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
-    await erc1155B.deposit();
+    await erc1155B.deposit(hashKeyA, deadline, flagB);
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // B has not deployed his contract, after the deadline A can withdraw funds

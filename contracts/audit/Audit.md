@@ -6,6 +6,10 @@
 
 ## Findings
 
+### Manual audit
+
+To protect against a timing attack, where party A reveals the key at the last moment and prevents party B from confirming the exchange because the exchange time ends at the same moment, a delay of one day is added for party A that initiates the exchange.
+
 ### [solidityscan.com](solidityscan.com)
 
 ![alt text](image-2.png)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 import "./interfaces/IERC20.sol";
 
@@ -7,6 +7,10 @@ import "./interfaces/IERC20.sol";
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
 /// @dev The contract leverages the ERC20 `transferFrom` method for deposits, allowing token swaps based on a hash key and a deadline.
 contract AtomicERC20Swap {
+    /// @notice One day in timestamp
+    /// @dev Used to protect side B
+    uint256 constant DAY = 86400;
+
     /// @notice The owner of the contract who initiates the swap.
     /// @dev Set at deployment and cannot be changed.
     address public immutable owner;
@@ -14,14 +18,6 @@ contract AtomicERC20Swap {
     /// @notice The other party involved in the swap.
     /// @dev Set at deployment and cannot be changed.
     address public immutable otherParty;
-
-    /// @notice Deadline after which the swap cannot be accepted.
-    /// @dev Represented as a Unix timestamp.
-    uint256 public immutable deadline;
-
-    /// @notice The cryptographic hash of the secret key required to complete the swap.
-    /// @dev The hash is used to ensure that the swap cannot be completed without the correct secret key.
-    bytes32 public immutable hashKey;
 
     /// @notice The ERC20 token to be swapped.
     /// @dev The contract holds and transfers tokens of this ERC20 type.
@@ -31,36 +27,42 @@ contract AtomicERC20Swap {
     /// @dev Used when calling the deposit function
     uint256 public immutable amount;
 
+    /// @notice Deadline after which the swap cannot be accepted.
+    /// @dev Represented as a Unix timestamp.
+    uint256 public deadline;
+
+    /// @notice The cryptographic hash of the secret key required to complete the swap.
+    /// @dev The hash is used to ensure that the swap cannot be completed without the correct secret key.
+    bytes32 public hashKey;
+
     /// @notice Emitted when the swap is confirmed with the correct secret key.
     /// @param key The secret key that was used to confirm the swap.
     event Swap(string indexed key);
 
     /// @param _token The address of the ERC20 token contract.
     /// @param _otherParty The address of the other party in the swap.
-    /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
-    /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
-    constructor(
-        address _token,
-        address _otherParty,
-        uint256 _deadline,
-        bytes32 _hashKey,
-        uint256 _amount
-    ) payable {
+
+    constructor(address _token, address _otherParty, uint256 _amount) payable {
         owner = msg.sender;
         token = IERC20(_token);
         otherParty = _otherParty;
-        deadline = _deadline;
-        hashKey = _hashKey;
         amount = _amount;
     }
 
     /// @notice Deposits ERC20 tokens into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer the specified `amount` of tokens on their behalf.
-    function deposit() external {
+    /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
+    /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
+    /// @param _flag TODO
+    function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
         require(
             token.transferFrom(owner, address(this), amount),
             "Transfer failed"
         );
+        hashKey = _hashKey;
+
+        if (_flag) deadline = _deadline + DAY;
+        else deadline = _deadline;
     }
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.

@@ -10,6 +10,11 @@ const timeout = 600;
 // How much should A fix in the contract
 const amountA = 1000;
 
+const id = 0;
+
+const flagA = true;
+const flagB = false;
+
 // A swaps 1000 ERC20 tokens of network A for 1 ERC721 token of network B
 describe("ERC20 To ERC721", function () {
   async function deployA() {
@@ -40,14 +45,12 @@ describe("ERC20 To ERC721", function () {
     const erc20A = await ERC20A.deploy(
       tokenA,
       partyB,
-      deadline,
-      hashKeyA,
-      amountA
+      amountA,
     );
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit();
+    await erc20A.deposit(hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -73,11 +76,11 @@ describe("ERC20 To ERC721", function () {
     const ERC721B = await hre.ethers.getContractFactory("AtomicERC721Swap", {
       signer: partyB,
     });
-    const erc721B = await ERC721B.deploy(tokenB, partyA, deadline, hashKeyA, 0);
+    const erc721B = await ERC721B.deploy(tokenB, partyA, id);
 
     // B transferred the tokens to the contract
-    await tokenB.connect(partyB).approve(erc721B, 0);
-    await erc721B.connect(partyB).deposit();
+    await tokenB.connect(partyB).approve(erc721B, id);
+    await erc721B.connect(partyB).deposit(hashKeyA, deadline, flagB);
     expect(await tokenB.balanceOf(erc721B)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B
@@ -101,11 +104,11 @@ describe("ERC20 To ERC721", function () {
     const ERC721B = await hre.ethers.getContractFactory("AtomicERC721Swap", {
       signer: partyB,
     });
-    const erc721B = await ERC721B.deploy(tokenB, partyA, deadline, hashKeyA, 0);
+    const erc721B = await ERC721B.deploy(tokenB, partyA,  id);
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).approve(erc721B, 0);
-    await erc721B.deposit();
+    await erc721B.deposit(hashKeyA, deadline,flagB);
     expect(await tokenB.balanceOf(erc721B)).to.be.equal(1); // 1 = NFT
 
     // B has not deployed his contract, after the deadline A can withdraw funds

@@ -8,6 +8,10 @@ import { generateRandomHexString } from "./common";
 
 const timeout = 600;
 
+const flagA = true;
+const flagB = false;
+
+const id = 0;
 // A swaps 1 ERC721 token of network A for 1 ERC721 token of network B
 describe("ERC721 To ERC721", function () {
   async function deployA() {
@@ -35,18 +39,12 @@ describe("ERC721 To ERC721", function () {
     const ERC721A = await hre.ethers.getContractFactory("AtomicERC721Swap", {
       signer: partyA,
     });
-    const id = 0;
-    const erc721A = await ERC721A.deploy(
-      tokenA,
-      partyB,
-      deadline,
-      hashKeyA,
-      id
-    );
+
+    const erc721A = await ERC721A.deploy(tokenA, partyB, id);
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc721A, id);
-    await erc721A.deposit();
+    await erc721A.deposit(hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc721A)).to.be.equal(1); // 1 = NFT
 
     return {
@@ -80,11 +78,11 @@ describe("ERC721 To ERC721", function () {
     const ERC721B = await hre.ethers.getContractFactory("AtomicERC721Swap", {
       signer: partyB,
     });
-    const erc721B = await ERC721B.deploy(tokenB, partyA, deadline, hashKeyA, 0);
+    const erc721B = await ERC721B.deploy(tokenB, partyA, id);
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).approve(erc721B, 0);
-    await erc721B.connect(partyB).deposit();
+    await erc721B.connect(partyB).deposit(hashKeyA, deadline, flagB);
     expect(await tokenB.balanceOf(erc721B)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B

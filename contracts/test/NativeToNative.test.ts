@@ -12,6 +12,9 @@ const amountA = 1000;
 // How much should B fix in the contract
 const amountB = 10000;
 
+const flagA = true;
+const flagB = false;
+
 // A swaps 1000 native tokens of network A for 10000 native tokens of network B
 describe("Native To Native", function () {
   async function deployA() {
@@ -29,7 +32,9 @@ describe("Native To Native", function () {
     const NativeA = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyA,
     });
-    const nativeA = await NativeA.deploy(partyB.address, deadline, hashKeyA, {
+    const nativeA = await NativeA.deploy(partyB, amountA);
+
+    await nativeA.deposit(hashKeyA, deadline, flagA, {
       value: amountA,
     });
 
@@ -48,7 +53,9 @@ describe("Native To Native", function () {
     const NativeB = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyB,
     });
-    const nativeB = await NativeB.deploy(partyA.address, deadline, hashKeyA, {
+    const nativeB = await NativeB.deploy(partyA, amountB);
+
+    await nativeB.connect(partyB).deposit(hashKeyA, deadline, flagB, {
       value: amountB,
     });
 
@@ -69,7 +76,7 @@ describe("Native To Native", function () {
     const { nativeA, partyA, deadline } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds
-    await time.increaseTo(deadline);
+    await time.increaseTo(deadline + 86400);
 
     await expect(nativeA.connect(partyA).withdrawal()).to.changeEtherBalance(
       partyA,
@@ -77,12 +84,14 @@ describe("Native To Native", function () {
     );
   });
 
-  it("Unsuccessful withdrawal", async function () {
-    const { nativeA, partyA, deadline } = await loadFixture(deployA);
+  it("Unsuccessful withdrawal A (Native)", async function () {
+    const { nativeA, partyA, deadline, hashKeyA } = await loadFixture(deployA);
+
+    await nativeA.connect(partyA).deposit(hashKeyA, deadline, flagA, {
+      value: amountA,
+    });
 
     // B has not deployed his contract, after the deadline A can withdraw funds
-    //  await time.increaseTo(deadline);
-
     await expect(nativeA.connect(partyA).withdrawal()).to.be.revertedWith(
       "Swap not yet expired"
     );

@@ -7,6 +7,9 @@ import hre from "hardhat";
 import { generateRandomHexString } from "./common";
 
 const timeout = 600;
+const id = 0;
+const flagA = true;
+const flagB = false;
 
 // A swaps 1 ERC721 token of network A for 1 ERC1155 token of network B
 describe("ERC721 To ERC1155", function () {
@@ -35,18 +38,12 @@ describe("ERC721 To ERC1155", function () {
     const ERC721A = await hre.ethers.getContractFactory("AtomicERC721Swap", {
       signer: partyA,
     });
-    const id = 0;
-    const erc721A = await ERC721A.deploy(
-      tokenA,
-      partyB,
-      deadline,
-      hashKeyA,
-      id
-    );
+
+    const erc721A = await ERC721A.deploy(tokenA, partyB, id);
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc721A, id);
-    await erc721A.deposit();
+    await erc721A.deposit(hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc721A)).to.be.equal(1); // 1 = NFT
 
     return {
@@ -83,18 +80,11 @@ describe("ERC721 To ERC1155", function () {
     const ERC1155B = await hre.ethers.getContractFactory("AtomicERC1155Swap", {
       signer: partyB,
     });
-    const erc1155B = await ERC1155B.deploy(
-      tokenB,
-      partyA,
-      deadline,
-      hashKeyA,
-      value,
-      id
-    );
+    const erc1155B = await ERC1155B.deploy(tokenB, partyA, value, id);
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
-    await erc1155B.connect(partyB).deposit();
+    await erc1155B.connect(partyB).deposit(hashKeyA, deadline, flagA);
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B
@@ -115,7 +105,7 @@ describe("ERC721 To ERC1155", function () {
     const { erc721A, partyA, deadline, tokenA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds
-    await time.increaseTo(deadline);
+    await time.increaseTo(deadline + 86400);
 
     await expect(erc721A.connect(partyA).withdrawal()).to.changeTokenBalance(
       tokenA,
@@ -124,7 +114,7 @@ describe("ERC721 To ERC1155", function () {
     );
   });
 
-  it("Unsuccessful withdrawal", async function () {
+  it("Unsuccessful withdrawal A (ERC721)", async function () {
     const { erc721A, partyA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds

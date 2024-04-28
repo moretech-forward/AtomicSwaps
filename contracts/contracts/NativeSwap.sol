@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 /// @title AtomicNativeSwap
 /// @notice This contract implements an atomic swap using native Ether transactions.
 /// It allows two parties to participate in a trustless exchange of Ether based on the fulfillment of a cryptographic condition.
 /// @dev The contract uses a hashlock mechanism for the swap to ensure that only the participant with the correct secret can claim the Ether.
 contract AtomicNativeSwap {
+    /// @notice One day in timestamp
+    /// @dev Used to protect side B
+    uint256 constant DAY = 86400;
+
     /// @notice The owner of the contract who initiates the swap.
     /// @dev Set at deployment and cannot be changed.
     address public immutable owner;
@@ -16,28 +20,40 @@ contract AtomicNativeSwap {
 
     /// @notice Deadline after which the swap cannot be accepted.
     /// @dev Represented as a Unix timestamp.
-    uint256 public immutable deadline;
+    uint256 public immutable amount;
 
     /// @notice The keccak256 hash of the secret key required to confirm the swap.
     /// @dev This hash secures the swap by preventing unauthorized access to the funds.
-    bytes32 public immutable hashKey;
+    bytes32 public hashKey;
+
+    /// @notice Deadline after which the swap cannot be accepted.
+    /// @dev Represented as a Unix timestamp.
+    uint256 public deadline;
 
     /// @notice Emitted when the swap is confirmed successfully with the correct key.
     /// @param key The secret key used to unlock the swap.
     event Swap(string indexed key);
 
     /// @param _otherParty The address of the other party in the swap.
-    /// @param _deadline The Unix timestamp after which the swap can be cancelled.
-    /// @param _hashKey The keccak256 hash of the secret key required to confirm the swap.
-    constructor(
-        address _otherParty,
-        uint256 _deadline,
-        bytes32 _hashKey
-    ) payable {
+    /// @param _amount TODO
+    constructor(address _otherParty, uint256 _amount) payable {
         owner = msg.sender;
         otherParty = _otherParty;
-        deadline = _deadline;
+        amount = _amount;
+    }
+
+    /// @param _hashKey TODO
+    /// @param _deadline The Unix timestamp after which the swap can be cancelled.
+    /// @param _flag TODO
+    function deposit(
+        bytes32 _hashKey,
+        uint256 _deadline,
+        bool _flag
+    ) external payable {
+        require(msg.value == amount);
         hashKey = _hashKey;
+        if (_flag) deadline = _deadline + DAY;
+        else deadline = _deadline;
     }
 
     /// @notice Confirms the swap and sends the Ether to the other party if the provided key matches the hash key.

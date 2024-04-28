@@ -12,6 +12,9 @@ const amountA = 1000;
 // How much should B fix in the contract
 const amountB = 10000;
 
+const flagA = true;
+const flagB = false;
+
 // A swaps 1000 ERC20 tokens of network A for 10000 Native tokens of network B
 describe("ERC20 To Native", function () {
   async function deployA() {
@@ -34,17 +37,11 @@ describe("ERC20 To Native", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(
-      tokenA,
-      partyB,
-      deadline,
-      hashKeyA,
-      amountA
-    );
+    const erc20A = await ERC20A.deploy(tokenA, partyB, amountA);
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit();
+    await erc20A.deposit(hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -69,7 +66,9 @@ describe("ERC20 To Native", function () {
     const NativeB = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyB,
     });
-    const nativeB = await NativeB.deploy(partyA, deadline, hashKeyA, {
+    const nativeB = await NativeB.deploy(partyA, amountB);
+
+    await nativeB.deposit(hashKeyA, deadline, flagB, {
       value: amountB,
     });
 
@@ -89,7 +88,7 @@ describe("ERC20 To Native", function () {
     const { erc20A, partyA, deadline, tokenA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds
-    await time.increaseTo(deadline);
+    await time.increaseTo(deadline + 86400);
 
     await expect(erc20A.connect(partyA).withdrawal()).to.changeTokenBalance(
       tokenA,

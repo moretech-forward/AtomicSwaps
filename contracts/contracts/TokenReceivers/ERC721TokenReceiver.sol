@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.23;
 
 /// @notice A generic interface for a contract which properly accepts ERC721 tokens.
 abstract contract ERC721TokenReceiver {

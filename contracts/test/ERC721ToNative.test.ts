@@ -10,6 +10,10 @@ const timeout = 600;
 // How much should B fix in the contract
 const amountB = 10000;
 
+const flagA = true;
+const flagB = false;
+const id = 0;
+
 // A swaps 1 ERC721 token of network A for 10000 Native tokens of network B
 describe("ERC721 To Native", function () {
   async function deployA() {
@@ -32,18 +36,12 @@ describe("ERC721 To Native", function () {
     const ERC721A = await hre.ethers.getContractFactory("AtomicERC721Swap", {
       signer: partyA,
     });
-    const id = 0;
-    const erc721A = await ERC721A.deploy(
-      tokenA,
-      partyB,
-      deadline,
-      hashKeyA,
-      id
-    );
+
+    const erc721A = await ERC721A.deploy(tokenA, partyB, id);
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc721A, id);
-    await erc721A.deposit();
+    await erc721A.deposit(hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc721A)).to.be.equal(1); // 1 = NFT
 
     return {
@@ -68,7 +66,8 @@ describe("ERC721 To Native", function () {
     const NativeB = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyB,
     });
-    const nativeB = await NativeB.deploy(partyA, deadline, hashKeyA, {
+    const nativeB = await NativeB.deploy(partyA, amountB);
+    await nativeB.connect(partyB).deposit(hashKeyA, deadline, flagB, {
       value: amountB,
     });
 
@@ -84,11 +83,13 @@ describe("ERC721 To Native", function () {
     ).to.changeTokenBalance(tokenA, partyB, 1); // 1 = NFT
   });
 
-  it("Successful withdrawal A", async function () {
-    const { erc721A, partyA, deadline, tokenA } = await loadFixture(deployA);
+  it("Successful withdrawal A (ERC721)", async function () {
+    const { erc721A, partyA, deadline, tokenA, hashKeyA } = await loadFixture(
+      deployA
+    );
 
     // B has not deployed his contract, after the deadline A can withdraw funds
-    await time.increaseTo(deadline);
+    await time.increaseTo(deadline + 86400);
 
     await expect(erc721A.connect(partyA).withdrawal()).to.changeTokenBalance(
       tokenA,
@@ -97,12 +98,10 @@ describe("ERC721 To Native", function () {
     );
   });
 
-  it("Unsuccessful withdrawal", async function () {
+  it("Unsuccessful withdrawal A (ERC721)", async function () {
     const { erc721A, partyA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds
-    //  await time.increaseTo(deadline);
-
     await expect(erc721A.connect(partyA).withdrawal()).to.be.revertedWith(
       "Swap not yet expired"
     );
