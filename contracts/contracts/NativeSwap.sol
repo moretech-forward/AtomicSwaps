@@ -35,16 +35,18 @@ contract AtomicNativeSwap {
     event Swap(string indexed key);
 
     /// @param _otherParty The address of the other party in the swap.
-    /// @param _amount TODO
+    /// @param _amount How much the user will deposit
     constructor(address _otherParty, uint256 _amount) payable {
         owner = msg.sender;
         otherParty = _otherParty;
         amount = _amount;
     }
 
-    /// @param _hashKey TODO
+    /// @notice Transfer of funds to the contract account
+    /// @dev It is necessary to send a value.
+    /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the swap can be cancelled.
-    /// @param _flag TODO
+    /// @param _flag Determines who the swap initiator is.
     function deposit(
         bytes32 _hashKey,
         uint256 _deadline,

@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import "./interfaces/IERC20.sol";
 
-/// @title ERC20SwapTransferFrom
+/// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
 /// @dev The contract leverages the ERC20 `transferFrom` method for deposits, allowing token swaps based on a hash key and a deadline.
 contract AtomicERC20Swap {
@@ -41,7 +41,7 @@ contract AtomicERC20Swap {
 
     /// @param _token The address of the ERC20 token contract.
     /// @param _otherParty The address of the other party in the swap.
-
+    /// @param _amount Number of tokens to be deposited into the contract
     constructor(address _token, address _otherParty, uint256 _amount) payable {
         owner = msg.sender;
         token = IERC20(_token);
@@ -53,7 +53,7 @@ contract AtomicERC20Swap {
     /// @dev Requires that the owner has approved the contract to transfer the specified `amount` of tokens on their behalf.
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
-    /// @param _flag TODO
+    /// @param _flag Determines who the swap initiator is.
     function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
         hashKey = _hashKey;
         if (_flag) deadline = _deadline + DAY;

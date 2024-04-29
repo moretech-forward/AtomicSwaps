@@ -4,6 +4,8 @@ pragma solidity ^0.8.23;
 import "./interfaces/IERC1155.sol";
 import "./TokenReceivers/ERC1155TokenReceiver.sol";
 
+/// @title AtomicERC1155Swap
+/// @notice A contract for a cross-chain atomic swap that stores a token identifier and amount that can be exchanged for any other asset
 contract AtomicERC1155Swap is ERC1155TokenReceiver {
     /// @notice One day in timestamp
     /// @dev Used to protect side B
@@ -57,9 +59,9 @@ contract AtomicERC1155Swap is ERC1155TokenReceiver {
 
     /// @notice Deposits ERC1155 token into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer NFT on their behalf.
-    /// @param _hashKey TODO
+    /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the swap can be cancelled.
-    /// @param _flag TODO
+    /// @param _flag Determines who the swap initiator is.
     function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
         hashKey = _hashKey;
         if (_flag) deadline = _deadline + DAY;
