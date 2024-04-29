@@ -7,8 +7,8 @@
 
 ## Docs
 
-- [Docs]()
-- [Audit](https://github.com/moretech-forward/AtomicSwaps/tree/main/contracts/audit)
+- [Docs](https://github.com/moretech-forward/AtomicSwaps/blob/main/contracts/Docs.md)
+- [Audit](https://github.com/moretech-forward/AtomicSwaps/blob/main/contracts/audit/Audit.md)
 
 ## Usage
 
