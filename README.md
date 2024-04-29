@@ -5,6 +5,11 @@
 - [AtomicSwaps - MoreTech](https://docs.google.com/document/d/14Fha9TKhlnKRjIvWq2qdCTfINw5r2krWyk2Yh0qRyFo/edit?usp=sharing)
 - [contract_review_AtomicSwaps_MoreTech](https://docs.google.com/document/d/1BL7N0oFpmZygeZ_kqIFmpzsZ_--fU-k33SZHs0zLmfU/edit)
 
+## Docs
+
+- [Docs]()
+- [Audit](https://github.com/moretech-forward/AtomicSwaps/tree/main/contracts/audit)
+
 ## Usage
 
 ```sh
@@ -16,7 +21,3 @@ npx hardhat compile
 npx hardhat test
 ```
 
-## Docs
-
-- [Docs]()
-- [Audit](https://github.com/moretech-forward/AtomicSwaps/tree/main/contracts/audit)
