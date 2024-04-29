@@ -2,6 +2,8 @@
 
 ## Description
 
+A simple swaps of assets between two EVM networks.
+
 Atomic swaps use a hash timelock contract (HTLC) which acts as a “virtual vault” or “cryptographic escrow account” that keeps user funds safe and only executes when the correct amount of tokens has been deposited to the contract. Each user must acknowledge receipt of tokens within a specified interval to unlock them.
 
 ### Hashed Timelock Contract (HTLC)
@@ -82,6 +84,21 @@ The split is determined by the flag that will be passed on deposit + the split m
 
 ## Contracts
 
+### Additionally
+
+- interfaces
+
+  - Interfaces for working with tokens
+
+- iocks
+
+  - Directory with tokens for tests
+  - `HackWallet` - PoC for the SafeMint Reentrancy vulnerability in SBT-721.
+
+- TokenReceivers
+
+  - The directory with contracts that define the interface for interoperability of the ERC721 and 1155 contract and `safe`-functions
+
 ### General functions
 
 #### `deposit`
@@ -95,7 +112,9 @@ Transfer of funds to the contract account.
   - The two parties must necessarily agree up to what point funds will be blocked in the contracts.
 - `_flag` Determines who the swap initiator is.
   - **Party A** transmits `_flag = 1`.
-- **Party B** transmits `_flag = 0`.
+  - **Party B** transmits `_flag = 0`.
+
+_The deposit function parameters could be moved to the contract constructor, but the Forward contract deployment interface does not support customization -> you can't use hashing and date input to get a timestamp_
 
 #### `confirmSwap`
 
