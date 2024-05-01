@@ -86,6 +86,13 @@ The split is determined by the flag that will be passed on deposit + the split m
 
 ### Additionally
 
+- AtomicSwap
+
+  - `AtomicSwap`
+    - Abstract contract to create a universal contract interface for different assets
+  - `Owned`
+    - Provides access control to contract functions
+
 - interfaces
 
   - Interfaces for working with tokens
