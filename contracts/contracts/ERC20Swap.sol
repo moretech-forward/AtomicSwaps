@@ -2,16 +2,12 @@
 pragma solidity ^0.8.23;
 
 import {IERC20} from "./interfaces/IERC20.sol";
-import {Owned} from "./Owned.sol";
+import {AtomicSwap} from "./AtomicSwap/AtomicSwap.sol";
 
 /// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
 /// @dev The contract leverages the ERC20 `transferFrom` method for deposits, allowing token swaps based on a hash key and a deadline.
-contract AtomicERC20Swap is Owned {
-    /// @notice One day in timestamp
-    /// @dev Used to protect side B
-    uint256 constant DAY = 86400;
-
+contract AtomicERC20Swap is AtomicSwap {
     /// @notice The ERC20 token to be swapped.
     /// @dev The contract holds and transfers tokens of this ERC20 type.
     IERC20 public immutable token;
@@ -19,18 +15,6 @@ contract AtomicERC20Swap is Owned {
     /// @notice Amount of tokens for swap
     /// @dev Used when calling the deposit function
     uint256 public immutable amount;
-
-    /// @notice Deadline after which the swap cannot be accepted.
-    /// @dev Represented as a Unix timestamp.
-    uint256 public deadline;
-
-    /// @notice The cryptographic hash of the secret key required to complete the swap.
-    /// @dev The hash is used to ensure that the swap cannot be completed without the correct secret key.
-    bytes32 public hashKey;
-
-    /// @notice Emitted when the swap is confirmed with the correct secret key.
-    /// @param key The secret key that was used to confirm the swap.
-    event Swap(string indexed key);
 
     /// @param _token The address of the ERC20 token contract.
     /// @param _otherParty The address of the other party in the swap.
@@ -52,7 +36,7 @@ contract AtomicERC20Swap is Owned {
         bytes32 _hashKey,
         uint256 _deadline,
         bool _flag
-    ) external onlyOwner {
+    ) external payable override onlyOwner {
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
         // done to protect the swap receiver (see documentation)
@@ -68,13 +52,15 @@ contract AtomicERC20Swap is Owned {
     /// @dev Requires that the key provided hashes to the stored hash key and transfers the token balance from this contract to the other party.
     /// Only callable by the otherParty.
     /// @param _key The secret key to unlock the swap.
-    function confirmSwap(string calldata _key) external onlyOtherParty {
-        require(
-            hashKey == keccak256(abi.encodePacked(_key)),
-            "The key does not match the hash"
-        );
-
-        emit Swap(_key);
+    function confirmSwap(
+        string calldata _key
+    ) external override onlyOtherParty {
+        // Key verification
+        require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
+        require(block.timestamp <= deadline, "Deadline has passed");
+        // Publishing a key
+        emit SwapConfirmed(_key);
+        // Balance transfer of ERC20 token to the caller (otherParty)
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(msg.sender, balance), "Transfer failed");
     }
@@ -82,7 +68,7 @@ contract AtomicERC20Swap is Owned {
     /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
     /// Only callable by the owner.
-    function withdrawal() external onlyOwner {
+    function withdrawal() external override onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(owner, balance), "Transfer failed");

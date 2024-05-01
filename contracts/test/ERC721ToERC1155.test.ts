@@ -91,7 +91,7 @@ describe("ERC721 To ERC1155", function () {
     // If A is satisfied, he takes the funds from B's contract and publishes the key
     await expect(erc1155B.connect(partyA).confirmSwap(keyA)).to.emit(
       erc1155B,
-      "Swap"
+      "SwapConfirmed"
     );
     expect(await tokenB.balanceOf(partyA, id)).to.be.equal(1); // 1 = NFT
 

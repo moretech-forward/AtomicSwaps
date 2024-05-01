@@ -63,7 +63,7 @@ describe("Native To Native", function () {
     // If A is satisfied, he takes the funds from B's contract and publishes the key
 
     await expect(nativeB.connect(partyA).confirmSwap(keyA))
-      .to.emit(nativeB, "Swap")
+      .to.emit(nativeB, "SwapConfirmed")
       .withArgs(keyA);
 
     // B sees the key in the contract events and opens contract A
