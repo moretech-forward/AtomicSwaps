@@ -1,23 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./interfaces/IERC721.sol";
-import "./TokenReceivers/ERC721TokenReceiver.sol";
+import {IERC721} from "./interfaces/IERC721.sol";
+import {ERC721TokenReceiver} from "./TokenReceivers/ERC721TokenReceiver.sol";
+import {Owned} from "./Owned.sol";
 
 /// @title AtomicERC721Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier that can be exchanged for any other asset
-contract AtomicERC721Swap is ERC721TokenReceiver {
+contract AtomicERC721Swap is Owned, ERC721TokenReceiver {
     /// @notice One day in timestamp
     /// @dev Used to protect side B
     uint256 constant DAY = 86400;
-
-    /// @notice The owner of the contract who initiates the swap.
-    /// @dev Set at deployment and cannot be changed.
-    address public immutable owner;
-
-    /// @notice The other party involved in the swap.
-    /// @dev Set at deployment and cannot be changed.
-    address public immutable otherParty;
 
     /// @notice The ERC721 token to be swapped.
     /// @dev The contract holds and transfers tokens of this ERC721 type.
@@ -51,11 +44,18 @@ contract AtomicERC721Swap is ERC721TokenReceiver {
 
     /// @notice Deposits ERC721 token into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer NFT on their behalf.
+    /// Only callable by the owner.
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
     /// @param _flag Determines who the swap initiator is.
-    function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
+    function deposit(
+        bytes32 _hashKey,
+        uint256 _deadline,
+        bool _flag
+    ) external onlyOwner {
         hashKey = _hashKey;
+        // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
+        // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         token.safeTransferFrom(owner, address(this), id);
@@ -63,20 +63,22 @@ contract AtomicERC721Swap is ERC721TokenReceiver {
 
     /// @notice Confirms the swap and transfers the ERC721 token to the other party if the provided key matches the hash key.
     /// @dev Requires that the key provided hashes to the stored hash key and transfers the token balance from this contract to the other party.
+    /// Only callable by the otherParty.
     /// @param _key The secret key to unlock the swap.
-    function confirmSwap(string calldata _key) external {
+    function confirmSwap(string calldata _key) external onlyOtherParty {
         require(
             hashKey == keccak256(abi.encodePacked(_key)),
             "The key does not match the hash"
         );
 
         emit Swap(_key);
-        token.safeTransferFrom(address(this), otherParty, id);
+        token.safeTransferFrom(address(this), msg.sender, id);
     }
 
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
-    function withdrawal() external {
+    /// Only callable by the owner.
+    function withdrawal() external onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
         token.safeTransferFrom(address(this), owner, id);
     }

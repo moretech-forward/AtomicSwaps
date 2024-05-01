@@ -1,23 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./interfaces/IERC20.sol";
+import {IERC20} from "./interfaces/IERC20.sol";
+import {Owned} from "./Owned.sol";
 
 /// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
 /// @dev The contract leverages the ERC20 `transferFrom` method for deposits, allowing token swaps based on a hash key and a deadline.
-contract AtomicERC20Swap {
+contract AtomicERC20Swap is Owned {
     /// @notice One day in timestamp
     /// @dev Used to protect side B
     uint256 constant DAY = 86400;
-
-    /// @notice The owner of the contract who initiates the swap.
-    /// @dev Set at deployment and cannot be changed.
-    address public immutable owner;
-
-    /// @notice The other party involved in the swap.
-    /// @dev Set at deployment and cannot be changed.
-    address public immutable otherParty;
 
     /// @notice The ERC20 token to be swapped.
     /// @dev The contract holds and transfers tokens of this ERC20 type.
@@ -51,11 +44,18 @@ contract AtomicERC20Swap {
 
     /// @notice Deposits ERC20 tokens into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer the specified `amount` of tokens on their behalf.
+    /// Only callable by the owner.
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
     /// @param _flag Determines who the swap initiator is.
-    function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
+    function deposit(
+        bytes32 _hashKey,
+        uint256 _deadline,
+        bool _flag
+    ) external onlyOwner {
         hashKey = _hashKey;
+        // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
+        // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         require(
@@ -66,8 +66,9 @@ contract AtomicERC20Swap {
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.
     /// @dev Requires that the key provided hashes to the stored hash key and transfers the token balance from this contract to the other party.
+    /// Only callable by the otherParty.
     /// @param _key The secret key to unlock the swap.
-    function confirmSwap(string calldata _key) external {
+    function confirmSwap(string calldata _key) external onlyOtherParty {
         require(
             hashKey == keccak256(abi.encodePacked(_key)),
             "The key does not match the hash"
@@ -75,12 +76,13 @@ contract AtomicERC20Swap {
 
         emit Swap(_key);
         uint256 balance = token.balanceOf(address(this));
-        require(token.transfer(otherParty, balance), "Transfer failed");
+        require(token.transfer(msg.sender, balance), "Transfer failed");
     }
 
     /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
-    function withdrawal() external {
+    /// Only callable by the owner.
+    function withdrawal() external onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(owner, balance), "Transfer failed");

@@ -99,6 +99,10 @@ The split is determined by the flag that will be passed on deposit + the split m
 
   - The directory with contracts that define the interface for interoperability of the ERC721 and 1155 contract and `safe`-functions
 
+- `Owned`
+
+  - Provides access control to contract functions
+
 ### General functions
 
 #### `deposit`

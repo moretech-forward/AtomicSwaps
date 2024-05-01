@@ -1,21 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import "./interfaces/IERC1155.sol";
-import "./TokenReceivers/ERC1155TokenReceiver.sol";
+import {IERC1155} from "./interfaces/IERC1155.sol";
+import {ERC1155TokenReceiver} from "./TokenReceivers/ERC1155TokenReceiver.sol";
+import {Owned} from "./Owned.sol";
 
 /// @title AtomicERC1155Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier and amount that can be exchanged for any other asset
-contract AtomicERC1155Swap is ERC1155TokenReceiver {
+contract AtomicERC1155Swap is Owned, ERC1155TokenReceiver {
     /// @notice One day in timestamp
     /// @dev Used to protect side B
     uint256 constant DAY = 86400;
-
-    /// @notice The owner of the contract who initiates the swap.
-    address public immutable owner;
-
-    /// @notice The other party involved in the swap.
-    address public immutable otherParty;
 
     /// @notice The ERC1155 token to be swapped.
     /// @dev The contract holds and transfers tokens of this ERC1155 type.
@@ -59,11 +54,18 @@ contract AtomicERC1155Swap is ERC1155TokenReceiver {
 
     /// @notice Deposits ERC1155 token into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer NFT on their behalf.
+    /// Only callable by the owner.
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the swap can be cancelled.
     /// @param _flag Determines who the swap initiator is.
-    function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) external {
+    function deposit(
+        bytes32 _hashKey,
+        uint256 _deadline,
+        bool _flag
+    ) external onlyOwner {
         hashKey = _hashKey;
+        // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
+        // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         token.safeTransferFrom(owner, address(this), id, value, "0x00");
@@ -71,20 +73,22 @@ contract AtomicERC1155Swap is ERC1155TokenReceiver {
 
     /// @notice Confirms the swap and transfers the ERC1155 token to the other party if the provided key matches the hash key.
     /// @dev Requires that the key provided hashes to the stored hash key and transfers tokens (value) from this contract to the other party.
+    /// Only callable by the otherParty.
     /// @param _key The secret key to unlock the swap.
-    function confirmSwap(string calldata _key) external {
+    function confirmSwap(string calldata _key) external onlyOtherParty {
         require(
             hashKey == keccak256(abi.encodePacked(_key)),
             "The key does not match the hash"
         );
 
         emit Swap(_key);
-        token.safeTransferFrom(address(this), otherParty, id, value, "");
+        token.safeTransferFrom(address(this), msg.sender, id, value, "");
     }
 
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
-    function withdrawal() external {
+    /// Only callable by the owner.
+    function withdrawal() external onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
         token.safeTransferFrom(address(this), owner, id, value, "");
     }
