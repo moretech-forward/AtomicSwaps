@@ -26,6 +26,10 @@ abstract contract AtomicSwap is Owned {
     /// @param key The secret key used to unlock the swap.
     event SwapConfirmed(string indexed key);
 
+    constructor() {
+        myAddr = address(this);
+    }
+
     /// @notice Allows the owner to deposit assets into the contract for swapping.
     /// @dev This function can only be called by the contract owner.
     /// @param _hashKey The keccak256 hash of the secret key required to release the funds.
