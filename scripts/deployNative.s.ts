@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 
+// npx hardhat run scripts/deployNative.s.ts --network localhost
 async function main() {
   const AtomicNativeSwap = await ethers.getContractFactory("AtomicNativeSwap");
   const atomicNativeSwap = await AtomicNativeSwap.deploy(
