@@ -10,6 +10,9 @@ abstract contract AtomicSwap is Owned {
     /// @notice Auxiliary variable for frontend
     address public immutable myAddr;
 
+    /// @notice The secret key used to unlock the swap.
+    string public key;
+
     /// @notice One day in timestamp
     /// @dev Used as a time unit for defining deadlines, specifically to protect side B in transactions.
     uint256 constant DAY = 86400;
@@ -21,10 +24,6 @@ abstract contract AtomicSwap is Owned {
     /// @notice Deadline after which the swap cannot be accepted.
     /// @dev Represented as a Unix timestamp, this is used to enforce the time limitation on the swap.
     uint256 public deadline;
-
-    /// @notice Emitted when the swap is confirmed successfully with the correct key.
-    /// @param key The secret key used to unlock the swap.
-    event SwapConfirmed(string indexed key);
 
     constructor() {
         myAddr = address(this);

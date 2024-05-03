@@ -59,7 +59,7 @@ contract AtomicERC20Swap is AtomicSwap {
         require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
         require(block.timestamp <= deadline, "Deadline has passed");
         // Publishing a key
-        emit SwapConfirmed(_key);
+        key = _key;
         // Balance transfer of ERC20 token to the caller (otherParty)
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(msg.sender, balance), "Transfer failed");

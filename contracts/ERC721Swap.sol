@@ -56,7 +56,7 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
         require(block.timestamp <= deadline, "Deadline has passed");
         // Publishing a key
-        emit SwapConfirmed(_key);
+        key = _key;
         // Transfer ERC721 token to caller (otherParty)
         token.safeTransferFrom(address(this), msg.sender, id);
     }

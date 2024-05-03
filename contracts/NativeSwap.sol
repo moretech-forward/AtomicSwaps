@@ -50,7 +50,7 @@ contract AtomicNativeSwap is AtomicSwap {
         require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
         require(block.timestamp <= deadline, "Deadline has passed");
         // Publishing a key
-        emit SwapConfirmed(_key);
+        key = _key;
         // Balance transfer to the caller (otherParty)
         payable(msg.sender).transfer(address(this).balance);
     }
