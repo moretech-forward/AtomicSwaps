@@ -13,9 +13,8 @@
 ## Usage
 
 ```sh
-git clone git@github.com:moretech-forward/AtomicSwaps.git
-cd AtomicSwaps
-cd contracts
+git clone git@github.com:moretech-forward/AtomicSwaps-contracts.git
+cd AtomicSwaps-contracts
 npm install
 npx hardhat compile
 npx hardhat test
