@@ -37,6 +37,9 @@ pragma solidity >=0.8.0;
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
 /// @dev Inherits from the Owned contract to utilize ownership-based access control.
 abstract contract AtomicSwap is Owned {
+    /// @notice Auxiliary variable for frontend
+    address public immutable myAddr;
+
     /// @notice One day in timestamp
     /// @dev Used as a time unit for defining deadlines, specifically to protect side B in transactions.
     uint256 constant DAY = 86400;
@@ -52,6 +55,10 @@ abstract contract AtomicSwap is Owned {
     /// @notice Emitted when the swap is confirmed successfully with the correct key.
     /// @param key The secret key used to unlock the swap.
     event SwapConfirmed(string indexed key);
+
+    constructor() {
+        myAddr = address(this);
+    }
 
     /// @notice Allows the owner to deposit assets into the contract for swapping.
     /// @dev This function can only be called by the contract owner.
