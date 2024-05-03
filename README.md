@@ -7,8 +7,8 @@
 
 ## Docs
 
-- [Docs](https://github.com/moretech-forward/AtomicSwaps/blob/main/contracts/Docs.md)
-- [Audit](https://github.com/moretech-forward/AtomicSwaps/blob/main/contracts/audit/Audit.md)
+- [Docs](https://github.com/moretech-forward/AtomicSwaps/blob/main/Docs.md)
+- [Audit](https://github.com/moretech-forward/AtomicSwaps/blob/main/audit/Audit.md)
 
 ## Usage
 
@@ -19,4 +19,3 @@ npm install
 npx hardhat compile
 npx hardhat test
 ```
-
