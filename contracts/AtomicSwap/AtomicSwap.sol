@@ -7,6 +7,9 @@ import {Owned} from "./Owned.sol";
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
 /// @dev Inherits from the Owned contract to utilize ownership-based access control.
 abstract contract AtomicSwap is Owned {
+    /// @notice Auxiliary variable for frontend
+    address public immutable myAddr;
+
     /// @notice One day in timestamp
     /// @dev Used as a time unit for defining deadlines, specifically to protect side B in transactions.
     uint256 constant DAY = 86400;
