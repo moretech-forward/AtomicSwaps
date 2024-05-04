@@ -1,6 +1,4 @@
-
 // File: contracts/Swaps/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -29,9 +27,7 @@ abstract contract Owned {
 
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
-
 pragma solidity >=0.8.0;
-
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -39,6 +35,9 @@ pragma solidity >=0.8.0;
 abstract contract AtomicSwap is Owned {
     /// @notice Auxiliary variable for frontend
     address public immutable myAddr;
+
+    /// @notice The secret key used to unlock the swap.
+    string public key;
 
     /// @notice One day in timestamp
     /// @dev Used as a time unit for defining deadlines, specifically to protect side B in transactions.
@@ -51,10 +50,6 @@ abstract contract AtomicSwap is Owned {
     /// @notice Deadline after which the swap cannot be accepted.
     /// @dev Represented as a Unix timestamp, this is used to enforce the time limitation on the swap.
     uint256 public deadline;
-
-    /// @notice Emitted when the swap is confirmed successfully with the correct key.
-    /// @param key The secret key used to unlock the swap.
-    event SwapConfirmed(string indexed key);
 
     constructor() {
         myAddr = address(this);
@@ -85,7 +80,6 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Swaps/TokenReceivers/ERC1155TokenReceiver.sol
 
-
 pragma solidity ^0.8.23;
 
 /// @notice A generic interface for a contract which properly accepts ERC1155 tokens.
@@ -113,7 +107,6 @@ abstract contract ERC1155TokenReceiver {
 
 // File: contracts/Swaps/interfaces/IERC1155.sol
 
-
 pragma solidity ^0.8.23;
 
 interface IERC1155 {
@@ -133,11 +126,7 @@ interface IERC1155 {
 
 // File: contracts/Swaps/ERC1155Swap.sol
 
-
 pragma solidity ^0.8.23;
-
-
-
 
 /// @title AtomicERC1155Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier and amount that can be exchanged for any other asset
@@ -200,7 +189,7 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
         require(block.timestamp <= deadline, "Deadline has passed");
         // Publishing a key
-        emit SwapConfirmed(_key);
+        key = _key;
         // Transfer ERC1155 token to caller (otherParty)
         token.safeTransferFrom(address(this), msg.sender, id, value, "");
     }

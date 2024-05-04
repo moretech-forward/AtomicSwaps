@@ -1,6 +1,4 @@
-
 // File: contracts/Swaps/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -29,9 +27,7 @@ abstract contract Owned {
 
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
-
 pragma solidity >=0.8.0;
-
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -39,6 +35,9 @@ pragma solidity >=0.8.0;
 abstract contract AtomicSwap is Owned {
     /// @notice Auxiliary variable for frontend
     address public immutable myAddr;
+
+    /// @notice The secret key used to unlock the swap.
+    string public key;
 
     /// @notice One day in timestamp
     /// @dev Used as a time unit for defining deadlines, specifically to protect side B in transactions.
@@ -51,10 +50,6 @@ abstract contract AtomicSwap is Owned {
     /// @notice Deadline after which the swap cannot be accepted.
     /// @dev Represented as a Unix timestamp, this is used to enforce the time limitation on the swap.
     uint256 public deadline;
-
-    /// @notice Emitted when the swap is confirmed successfully with the correct key.
-    /// @param key The secret key used to unlock the swap.
-    event SwapConfirmed(string indexed key);
 
     constructor() {
         myAddr = address(this);
@@ -83,73 +78,50 @@ abstract contract AtomicSwap is Owned {
     function withdrawal() external virtual onlyOwner {}
 }
 
-// File: contracts/Swaps/TokenReceivers/ERC721TokenReceiver.sol
-
-
-pragma solidity ^0.8.23;
-
-/// @notice A generic interface for a contract which properly accepts ERC721 tokens.
-abstract contract ERC721TokenReceiver {
-    /// @notice Handles the receipt of an NFT.
-    /// @return Returns the selector to confirm the interface and proper receipt.
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
-        return ERC721TokenReceiver.onERC721Received.selector;
-    }
-}
-
-// File: contracts/Swaps/interfaces/IERC721.sol
-
+// File: contracts/Swaps/interfaces/IERC20.sol
 
 pragma solidity ^0.8.23;
 
-interface IERC721 {
-    function safeTransferFrom(
+interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
+
+    function transferFrom(
         address from,
         address to,
-        uint256 tokenId
-    ) external;
+        uint256 amount
+    ) external returns (bool);
 
-    function transferFrom(address from, address to, uint256 tokenId) external;
-
-    function safeMint(address to) external;
+    function balanceOf(address account) external view returns (uint256);
 }
 
-// File: contracts/Swaps/ERC721Swap.sol
-
+// File: contracts/Swaps/ERC20Swap.sol
 
 pragma solidity ^0.8.23;
 
+/// @title AtomicERC20Swap
+/// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
+/// @dev The contract leverages the ERC20 `transferFrom` method for deposits, allowing token swaps based on a hash key and a deadline.
+contract AtomicERC20Swap is AtomicSwap {
+    /// @notice The ERC20 token to be swapped.
+    /// @dev The contract holds and transfers tokens of this ERC20 type.
+    IERC20 public immutable token;
 
+    /// @notice Amount of tokens for swap
+    /// @dev Used when calling the deposit function
+    uint256 public immutable amount;
 
-
-/// @title AtomicERC721Swap
-/// @notice A contract for a cross-chain atomic swap that stores a token identifier that can be exchanged for any other asset
-contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
-    /// @notice The ERC721 token to be swapped.
-    /// @dev The contract holds and transfers tokens of this ERC721 type.
-    IERC721 public immutable token;
-
-    /// @notice Identifier of the token to be swapped.
-    /// @dev The contract interacts only with this token identifier.
-    uint256 public immutable id;
-
-    /// @param _token The address of the ERC721 token contract.
+    /// @param _token The address of the ERC20 token contract.
     /// @param _otherParty The address of the other party in the swap.
-    /// @param _id Identifier of the token to be locked.
-    constructor(address _token, address _otherParty, uint256 _id) payable {
+    /// @param _amount Number of tokens to be deposited into the contract
+    constructor(address _token, address _otherParty, uint256 _amount) payable {
         owner = msg.sender;
-        token = IERC721(_token);
+        token = IERC20(_token);
         otherParty = _otherParty;
-        id = _id;
+        amount = _amount;
     }
 
-    /// @notice Deposits ERC721 token into the contract from the owner's balance.
-    /// @dev Requires that the owner has approved the contract to transfer NFT on their behalf.
+    /// @notice Deposits ERC20 tokens into the contract from the owner's balance.
+    /// @dev Requires that the owner has approved the contract to transfer the specified `amount` of tokens on their behalf.
     /// Only callable by the owner.
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
@@ -164,10 +136,13 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
-        token.safeTransferFrom(owner, address(this), id);
+        require(
+            token.transferFrom(owner, address(this), amount),
+            "Transfer failed"
+        );
     }
 
-    /// @notice Confirms the swap and transfers the ERC721 token to the other party if the provided key matches the hash key.
+    /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.
     /// @dev Requires that the key provided hashes to the stored hash key and transfers the token balance from this contract to the other party.
     /// Only callable by the otherParty.
     /// @param _key The secret key to unlock the swap.
@@ -178,16 +153,18 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
         require(block.timestamp <= deadline, "Deadline has passed");
         // Publishing a key
-        emit SwapConfirmed(_key);
-        // Transfer ERC721 token to caller (otherParty)
-        token.safeTransferFrom(address(this), msg.sender, id);
+        key = _key;
+        // Balance transfer of ERC20 token to the caller (otherParty)
+        uint256 balance = token.balanceOf(address(this));
+        require(token.transfer(msg.sender, balance), "Transfer failed");
     }
 
-    /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
+    /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
     /// Only callable by the owner.
     function withdrawal() external override onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
-        token.safeTransferFrom(address(this), owner, id);
+        uint256 balance = token.balanceOf(address(this));
+        require(token.transfer(owner, balance), "Transfer failed");
     }
 }

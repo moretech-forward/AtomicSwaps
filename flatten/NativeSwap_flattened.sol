@@ -1,6 +1,4 @@
-
 // File: contracts/Swaps/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -29,9 +27,7 @@ abstract contract Owned {
 
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
-
 pragma solidity >=0.8.0;
-
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -39,6 +35,9 @@ pragma solidity >=0.8.0;
 abstract contract AtomicSwap is Owned {
     /// @notice Auxiliary variable for frontend
     address public immutable myAddr;
+
+    /// @notice The secret key used to unlock the swap.
+    string public key;
 
     /// @notice One day in timestamp
     /// @dev Used as a time unit for defining deadlines, specifically to protect side B in transactions.
@@ -51,10 +50,6 @@ abstract contract AtomicSwap is Owned {
     /// @notice Deadline after which the swap cannot be accepted.
     /// @dev Represented as a Unix timestamp, this is used to enforce the time limitation on the swap.
     uint256 public deadline;
-
-    /// @notice Emitted when the swap is confirmed successfully with the correct key.
-    /// @param key The secret key used to unlock the swap.
-    event SwapConfirmed(string indexed key);
 
     constructor() {
         myAddr = address(this);
@@ -85,9 +80,7 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Swaps/NativeSwap.sol
 
-
 pragma solidity ^0.8.23;
-
 
 /// @title AtomicNativeSwap
 /// @notice This contract implements an atomic swap using native Ether transactions.
@@ -136,7 +129,7 @@ contract AtomicNativeSwap is AtomicSwap {
         require(keccak256(abi.encodePacked(_key)) == hashKey, "Invalid key");
         require(block.timestamp <= deadline, "Deadline has passed");
         // Publishing a key
-        emit SwapConfirmed(_key);
+        key = _key;
         // Balance transfer to the caller (otherParty)
         payable(msg.sender).transfer(address(this).balance);
     }
