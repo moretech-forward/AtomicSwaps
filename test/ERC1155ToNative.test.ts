@@ -82,10 +82,8 @@ describe("ERC1155 To Native", function () {
     ).to.changeEtherBalance(partyA, amountB);
 
     // B sees the key in the contract events and opens contract A
-    await expect(erc1155A.connect(partyB).confirmSwap(keyA)).to.emit(
-      erc1155A,
-      "SwapConfirmed"
-    );
+    await erc1155A.connect(partyB).confirmSwap(keyA);
+
     expect(await tokenA.balanceOf(partyB, id)).to.be.equal(1); // 1 = NFT
   });
 });

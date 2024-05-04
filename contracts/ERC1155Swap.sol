@@ -47,6 +47,7 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         uint256 _deadline,
         bool _flag
     ) external payable override onlyOwner {
+        require(block.timestamp > deadline, "Swap not yet expired");
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
         // done to protect the swap receiver (see documentation)

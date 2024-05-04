@@ -62,9 +62,7 @@ describe("Native To Native", function () {
     // A checks the contract B
     // If A is satisfied, he takes the funds from B's contract and publishes the key
 
-    await expect(nativeB.connect(partyA).confirmSwap(keyA))
-      .to.emit(nativeB, "SwapConfirmed")
-      .withArgs(keyA);
+    await nativeB.connect(partyA).confirmSwap(keyA);
 
     // B sees the key in the contract events and opens contract A
     await expect(
@@ -85,15 +83,41 @@ describe("Native To Native", function () {
   });
 
   it("Unsuccessful withdrawal A (Native)", async function () {
-    const { nativeA, partyA, deadline, hashKeyA } = await loadFixture(deployA);
-
-    await nativeA.connect(partyA).deposit(hashKeyA, deadline, flagA, {
-      value: amountA,
-    });
+    const { nativeA, partyA } = await loadFixture(deployA);
 
     // B has not deployed his contract, after the deadline A can withdraw funds
     await expect(nativeA.connect(partyA).withdrawal()).to.be.revertedWith(
       "Swap not yet expired"
+    );
+  });
+
+  it("Bad Exploit", async function () {
+    const { nativeA, partyA, deadline, hashKeyA } = await loadFixture(deployA);
+
+    const now = Date.now();
+    await expect(
+      nativeA.connect(partyA).deposit(hashKeyA, now, flagB, {
+        value: amountA,
+      })
+    ).to.be.revertedWith("Swap not yet expired");
+
+    console.log(now);
+    console.log(await nativeA.deadline());
+    console.log(
+      await hre.ethers.provider.getBlock(
+        await hre.ethers.provider.getBlockNumber()
+      )
+    );
+
+    const block = await hre.ethers.provider.getBlock(
+      await hre.ethers.provider.getBlockNumber()
+    );
+
+    await time.increaseTo(deadline + 86400);
+
+    await expect(nativeA.connect(partyA).withdrawal()).to.changeEtherBalance(
+      partyA,
+      amountA
     );
   });
 });

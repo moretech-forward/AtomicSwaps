@@ -1,4 +1,6 @@
+
 // File: contracts/Swaps/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -27,7 +29,9 @@ abstract contract Owned {
 
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
+
 pragma solidity >=0.8.0;
+
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -80,6 +84,7 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Swaps/TokenReceivers/ERC1155TokenReceiver.sol
 
+
 pragma solidity ^0.8.23;
 
 /// @notice A generic interface for a contract which properly accepts ERC1155 tokens.
@@ -107,6 +112,7 @@ abstract contract ERC1155TokenReceiver {
 
 // File: contracts/Swaps/interfaces/IERC1155.sol
 
+
 pragma solidity ^0.8.23;
 
 interface IERC1155 {
@@ -126,7 +132,11 @@ interface IERC1155 {
 
 // File: contracts/Swaps/ERC1155Swap.sol
 
+
 pragma solidity ^0.8.23;
+
+
+
 
 /// @title AtomicERC1155Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier and amount that can be exchanged for any other asset
@@ -170,6 +180,7 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         uint256 _deadline,
         bool _flag
     ) external payable override onlyOwner {
+        require(block.timestamp > deadline, "Swap not yet expired");
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
         // done to protect the swap receiver (see documentation)

@@ -1,4 +1,6 @@
+
 // File: contracts/Swaps/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -27,7 +29,9 @@ abstract contract Owned {
 
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
+
 pragma solidity >=0.8.0;
+
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -80,7 +84,9 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Swaps/NativeSwap.sol
 
+
 pragma solidity ^0.8.23;
+
 
 /// @title AtomicNativeSwap
 /// @notice This contract implements an atomic swap using native Ether transactions.
@@ -109,6 +115,7 @@ contract AtomicNativeSwap is AtomicSwap {
         uint256 _deadline,
         bool _flag
     ) external payable override onlyOwner {
+        require(block.timestamp > deadline, "Swap not yet expired");
         require(msg.value == amount, "Incorrect deposit amount");
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,

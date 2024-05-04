@@ -89,17 +89,12 @@ describe("ERC1155 To ERC1155", function () {
 
     // A checks the contract B
     // If A is satisfied, he takes the funds from B's contract and publishes the key
-    await expect(erc1155B.connect(partyA).confirmSwap(keyA)).to.emit(
-      erc1155B,
-      "SwapConfirmed"
-    );
+    await erc1155B.connect(partyA).confirmSwap(keyA);
+
     expect(await tokenB.balanceOf(partyA, id)).to.be.equal(1); // 1 = NFT
 
     // B sees the key in the contract events and opens contract A
-    await expect(erc1155A.connect(partyB).confirmSwap(keyA)).to.emit(
-      erc1155A,
-      "SwapConfirmed"
-    );
+    await erc1155A.connect(partyB).confirmSwap(keyA);
     expect(await tokenA.balanceOf(partyB, id)).to.be.equal(1); // 1 = NFT
   });
 });

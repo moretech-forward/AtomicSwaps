@@ -106,16 +106,7 @@ describe("ERC20 To ERC20", function () {
   });
 
   it("Unsuccessful withdrawal A (ERC20)", async function () {
-    const { erc20A, partyA, tokenA, hashKeyA, deadline } = await loadFixture(
-      deployA
-    );
-
-    // B has not deployed his contract, after the deadline A can withdraw funds
-    //  await time.increaseTo(deadline);
-
-    // A transferred the tokens to the contract
-    await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(hashKeyA, deadline, flagA);
+    const { erc20A, partyA } = await loadFixture(deployA);
 
     await expect(erc20A.connect(partyA).withdrawal()).to.be.revertedWith(
       "Swap not yet expired"

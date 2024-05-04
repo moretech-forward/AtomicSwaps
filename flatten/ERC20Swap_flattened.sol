@@ -1,4 +1,6 @@
+
 // File: contracts/Swaps/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -27,7 +29,9 @@ abstract contract Owned {
 
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
+
 pragma solidity >=0.8.0;
+
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -80,6 +84,7 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Swaps/interfaces/IERC20.sol
 
+
 pragma solidity ^0.8.23;
 
 interface IERC20 {
@@ -96,7 +101,10 @@ interface IERC20 {
 
 // File: contracts/Swaps/ERC20Swap.sol
 
+
 pragma solidity ^0.8.23;
+
+
 
 /// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
@@ -131,6 +139,7 @@ contract AtomicERC20Swap is AtomicSwap {
         uint256 _deadline,
         bool _flag
     ) external payable override onlyOwner {
+        require(block.timestamp > deadline, "Swap not yet expired");
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
         // done to protect the swap receiver (see documentation)
