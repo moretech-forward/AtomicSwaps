@@ -1,0 +1,13 @@
+[
+  "constructor(address _otherParty, uint256 _amount) payable",
+  "function amount() view returns (uint256)",
+  "function confirmSwap(string _key)",
+  "function deadline() view returns (uint256)",
+  "function deposit(bytes32 _hashKey, uint256 _deadline, bool _flag) payable",
+  "function hashKey() view returns (bytes32)",
+  "function key() view returns (string)",
+  "function myAddr() view returns (address)",
+  "function otherParty() view returns (address)",
+  "function owner() view returns (address)",
+  "function withdrawal()"
+]
