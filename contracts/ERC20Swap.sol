@@ -56,7 +56,7 @@ contract AtomicERC20Swap is AtomicSwap {
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.
     /// @dev Requires that the key provided hashes to the stored hash key and transfers the token balance from this contract to the other party.
-    /// Only callable by the otherParty.
+    /// @dev Only callable by the otherParty.
     /// @param _key The secret key to unlock the swap.
     function confirmSwap(
         string calldata _key
@@ -73,7 +73,7 @@ contract AtomicERC20Swap is AtomicSwap {
 
     /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.
     /// @dev Checks if the current time is past the deadline and transfers the token balance from this contract to the owner.
-    /// Only callable by the owner.
+    /// @dev Only callable by the owner.
     function withdrawal() external override onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
         uint256 balance = token.balanceOf(address(this));

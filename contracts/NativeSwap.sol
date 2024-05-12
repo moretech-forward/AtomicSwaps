@@ -46,8 +46,8 @@ contract AtomicNativeSwap is AtomicSwap {
 
     /// @notice Confirms the swap and sends the Ether to the other party if the provided key matches the hash key.
     /// @dev The function requires that the caller provides a key that hashes to the pre-stored hash key.
-    /// If the condition is met, the contract emits the `Swap` event and transfers all the Ether to the other party.
-    /// Only callable by the otherParty.
+    /// @dev If the condition is met, the contract emits the `Swap` event and transfers all the Ether to the other party.
+    /// @dev Only callable by the otherParty.
     /// @param _key The secret key that unlocks the swap.
     function confirmSwap(
         string calldata _key
@@ -63,7 +63,7 @@ contract AtomicNativeSwap is AtomicSwap {
 
     /// @notice Allows the owner to withdraw the Ether if the swap is not completed by the deadline.
     /// @dev This function checks if the current timestamp is past the deadline, and if so, it allows the owner to withdraw the Ether.
-    /// Only callable by the owner.
+    /// @dev Only callable by the owner.
     function withdrawal() external override onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
         payable(owner).transfer(address(this).balance);
