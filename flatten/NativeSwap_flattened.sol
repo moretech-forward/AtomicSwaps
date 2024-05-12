@@ -30,8 +30,7 @@ abstract contract Owned {
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
 
-pragma solidity >=0.8.0;
-
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -85,8 +84,7 @@ abstract contract AtomicSwap is Owned {
 // File: contracts/Swaps/NativeSwap.sol
 
 
-pragma solidity ^0.8.23;
-
+pragma solidity ^0.8.23;
 
 /// @title AtomicNativeSwap
 /// @notice This contract implements an atomic swap using native Ether transactions.
@@ -107,6 +105,7 @@ contract AtomicNativeSwap is AtomicSwap {
 
     /// @notice Transfer of funds to the contract account
     /// @dev It is necessary to send a value. Only callable by the owner.
+    /// @dev You cannot enter a deadline timestamp less than the current time
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the swap can be cancelled.
     /// @param _flag Determines who the swap initiator is.
@@ -116,6 +115,10 @@ contract AtomicNativeSwap is AtomicSwap {
         bool _flag
     ) external payable override onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
+        require(
+            block.timestamp < _deadline,
+            "The deadline is earlier than the current time"
+        );
         require(msg.value == amount, "Incorrect deposit amount");
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,

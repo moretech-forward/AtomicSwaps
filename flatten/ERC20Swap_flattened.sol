@@ -30,8 +30,7 @@ abstract contract Owned {
 // File: contracts/Swaps/AtomicSwap/AtomicSwap.sol
 
 
-pragma solidity >=0.8.0;
-
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides access control and time-bound mechanisms for atomic swap transactions.
@@ -102,9 +101,7 @@ interface IERC20 {
 // File: contracts/Swaps/ERC20Swap.sol
 
 
-pragma solidity ^0.8.23;
-
-
+pragma solidity ^0.8.23;
 
 /// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
@@ -130,7 +127,8 @@ contract AtomicERC20Swap is AtomicSwap {
 
     /// @notice Deposits ERC20 tokens into the contract from the owner's balance.
     /// @dev Requires that the owner has approved the contract to transfer the specified `amount` of tokens on their behalf.
-    /// Only callable by the owner.
+    /// @dev Only callable by the owner.
+    /// @dev You cannot enter a deadline timestamp less than the current time
     /// @param _hashKey The cryptographic hash of the secret key needed to complete the swap.
     /// @param _deadline The Unix timestamp after which the owner can withdraw the tokens if the swap hasn't been completed.
     /// @param _flag Determines who the swap initiator is.
@@ -140,6 +138,10 @@ contract AtomicERC20Swap is AtomicSwap {
         bool _flag
     ) external payable override onlyOwner {
         require(block.timestamp > deadline, "Swap not yet expired");
+        require(
+            block.timestamp < _deadline,
+            "The deadline is earlier than the current time"
+        );
         hashKey = _hashKey;
         // The user who initiates the swap sends flag = 1 and his funds will be locked for 24 hours longer,
         // done to protect the swap receiver (see documentation)
