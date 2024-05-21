@@ -97,7 +97,7 @@ The split is determined by the flag that will be passed on deposit + the split m
 
   - Interfaces for working with tokens
 
-- iocks
+- mocks
 
   - Directory with tokens for tests
   - `HackWallet` - PoC for the SafeMint Reentrancy vulnerability in SBT-721.
@@ -112,7 +112,7 @@ The split is determined by the flag that will be passed on deposit + the split m
 
 ### General functions
 
-#### `deposit`
+#### `createSwap`
 
 Transfer of funds to the contract account.
 
@@ -142,18 +142,15 @@ This function checks if the current timestamp is past the deadline, and if so, i
 
 ### `AtomicNativeSwap`
 
-#### `constructor`
+#### `createSwap`
 
 - `_otherParty` The address of the other party in the swap.
 - `_amount` How much the user will deposit
-
-#### `deposit`
-
-It is necessary to send a `value`.
+- It is necessary to send a `value`.
 
 ### `AtomicERC20Swap`
 
-#### `constructor`
+#### `createSwap`
 
 - `_token` The address of the ERC20 token contract.
 - `_otherParty` The address of the other party in the swap.
@@ -161,7 +158,7 @@ It is necessary to send a `value`.
 
 ### `AtomicERC721Swap`
 
-#### `constructor`
+#### `createSwap`
 
 - `_token` The address of the ERC721 token contract.
 - `_otherParty` The address of the other party in the swap.
@@ -169,7 +166,7 @@ It is necessary to send a `value`.
 
 ### `AtomicERC1155Swap`
 
-#### `constructor`
+#### `createSwap`
 
 - `_token` The address of the ERC1155 token contract
 - `_otherParty` The address of the other party in the swap.
