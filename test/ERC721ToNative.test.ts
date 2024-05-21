@@ -37,11 +37,11 @@ describe("ERC721 To Native", function () {
       signer: partyA,
     });
 
-    const erc721A = await ERC721A.deploy(tokenA, partyB, id);
+    const erc721A = await ERC721A.deploy();
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc721A, id);
-    await erc721A.deposit(hashKeyA, deadline, flagA);
+    await erc721A.createSwap(tokenA, partyB, id, hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc721A)).to.be.equal(1); // 1 = NFT
 
     return {
@@ -66,10 +66,12 @@ describe("ERC721 To Native", function () {
     const NativeB = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyB,
     });
-    const nativeB = await NativeB.deploy(partyA, amountB);
-    await nativeB.connect(partyB).deposit(hashKeyA, deadline, flagB, {
-      value: amountB,
-    });
+    const nativeB = await NativeB.deploy();
+    await nativeB
+      .connect(partyB)
+      .createSwap(partyA, amountB, hashKeyA, deadline, flagB, {
+        value: amountB,
+      });
 
     // A checks the contract B
     // If A is satisfied, he takes the funds from B's contract and publishes the key

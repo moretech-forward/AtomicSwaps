@@ -37,11 +37,13 @@ describe("ERC20 To Native", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(tokenA, partyB, amountA);
+    const erc20A = await ERC20A.deploy();
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(hashKeyA, deadline, flagA);
+    await erc20A
+      .connect(partyA)
+      .createSwap(tokenA, partyB, amountA, hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -66,9 +68,9 @@ describe("ERC20 To Native", function () {
     const NativeB = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyB,
     });
-    const nativeB = await NativeB.deploy(partyA, amountB);
+    const nativeB = await NativeB.deploy();
 
-    await nativeB.deposit(hashKeyA, deadline, flagB, {
+    await nativeB.createSwap(partyA, amountB, hashKeyA, deadline, flagB, {
       value: amountB,
     });
 

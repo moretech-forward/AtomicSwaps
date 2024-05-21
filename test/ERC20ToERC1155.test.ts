@@ -40,15 +40,13 @@ describe("ERC20 To ERC1155", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(
-      tokenA,
-      partyB,
-      amountA      
-    );
+    const erc20A = await ERC20A.deploy();
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(hashKeyA, deadline,flagA);
+    await erc20A
+      .connect(partyA)
+      .createSwap(tokenA, partyB, amountA, hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -77,16 +75,13 @@ describe("ERC20 To ERC1155", function () {
     const ERC1155B = await hre.ethers.getContractFactory("AtomicERC1155Swap", {
       signer: partyB,
     });
-    const erc1155B = await ERC1155B.deploy(
-      tokenB,
-      partyA,
-      value,
-      id
-    );
+    const erc1155B = await ERC1155B.deploy();
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
-    await erc1155B.connect(partyB).deposit(hashKeyA, deadline, flagB);
+    await erc1155B
+      .connect(partyB)
+      .createSwap(tokenB, partyA, value, id, hashKeyA, deadline, flagB);
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B
@@ -111,16 +106,19 @@ describe("ERC20 To ERC1155", function () {
     const ERC1155B = await hre.ethers.getContractFactory("AtomicERC1155Swap", {
       signer: partyB,
     });
-    const erc1155B = await ERC1155B.deploy(
-      tokenB,
-      partyA,
-      value,
-      id
-    );
+    const erc1155B = await ERC1155B.deploy();
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
-    await erc1155B.deposit(hashKeyA, deadline, flagB);
+    await erc1155B.createSwap(
+      tokenB,
+      partyA,
+      value,
+      id,
+      hashKeyA,
+      deadline,
+      flagB
+    );
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // B has not deployed his contract, after the deadline A can withdraw funds

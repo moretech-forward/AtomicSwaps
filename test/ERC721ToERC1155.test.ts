@@ -39,11 +39,11 @@ describe("ERC721 To ERC1155", function () {
       signer: partyA,
     });
 
-    const erc721A = await ERC721A.deploy(tokenA, partyB, id);
+    const erc721A = await ERC721A.deploy();
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc721A, id);
-    await erc721A.deposit(hashKeyA, deadline, flagA);
+    await erc721A.createSwap(tokenA, partyB, id, hashKeyA, deadline, flagA);
     expect(await tokenA.balanceOf(erc721A)).to.be.equal(1); // 1 = NFT
 
     return {
@@ -80,11 +80,13 @@ describe("ERC721 To ERC1155", function () {
     const ERC1155B = await hre.ethers.getContractFactory("AtomicERC1155Swap", {
       signer: partyB,
     });
-    const erc1155B = await ERC1155B.deploy(tokenB, partyA, value, id);
+    const erc1155B = await ERC1155B.deploy();
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).setApprovalForAll(erc1155B, true);
-    await erc1155B.connect(partyB).deposit(hashKeyA, deadline, flagA);
+    await erc1155B
+      .connect(partyB)
+      .createSwap(tokenB, partyA, value, id, hashKeyA, deadline, flagA);
     expect(await tokenB.balanceOf(erc1155B, id)).to.be.equal(1); // 1 = NFT
 
     // A checks the contract B

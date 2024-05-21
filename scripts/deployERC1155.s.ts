@@ -10,12 +10,7 @@ async function main() {
   const AtomicERC1155Swap = await ethers.getContractFactory(
     "AtomicERC1155Swap"
   );
-  const atomicERC1155Swap = await AtomicERC1155Swap.deploy(
-    erc1155.target,
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    0,
-    1
-  );
+  const atomicERC1155Swap = await AtomicERC1155Swap.deploy();
 
   console.log(
     `AtomicERC1155Swap deployed to ${await atomicERC1155Swap.getAddress()}`

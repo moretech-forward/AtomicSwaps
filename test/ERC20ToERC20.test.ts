@@ -42,11 +42,12 @@ describe("ERC20 To ERC20", function () {
     const ERC20A = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyA,
     });
-    const erc20A = await ERC20A.deploy(tokenA, partyB, amountA);
+    const erc20A = await ERC20A.deploy();
 
     // A transferred the tokens to the contract
     await tokenA.connect(partyA).approve(erc20A, amountA);
-    await erc20A.deposit(hashKeyA, deadline, flagA);
+    await erc20A.createSwap(tokenA, partyB, amountA, hashKeyA, deadline, flagA);
+
     expect(await tokenA.balanceOf(erc20A)).to.be.equal(amountA);
 
     return {
@@ -72,11 +73,12 @@ describe("ERC20 To ERC20", function () {
     const ERC20B = await hre.ethers.getContractFactory("AtomicERC20Swap", {
       signer: partyB,
     });
-    const erc20B = await ERC20B.deploy(tokenB, partyA, amountB);
+    const erc20B = await ERC20B.deploy();
 
     // B transferred the tokens to the contract
     await tokenB.connect(partyB).approve(erc20B, amountB);
-    await erc20B.deposit(hashKeyA, deadline, flagB);
+    await erc20B.createSwap(tokenB, partyA, amountB, hashKeyA, deadline, flagB);
+
     expect(await tokenB.balanceOf(erc20B)).to.be.equal(amountB);
 
     // A checks the contract B
@@ -90,6 +92,10 @@ describe("ERC20 To ERC20", function () {
     await expect(
       erc20A.connect(partyB).confirmSwap(keyA)
     ).to.changeTokenBalance(tokenA, partyB, amountA);
+
+    // Attempting to create Swap a second time
+    await tokenB.connect(partyA).approve(erc20A, amountB);
+    await erc20A.createSwap(tokenB, partyB, amountB, hashKeyA, deadline, flagA);
   });
 
   it("Successful withdrawal A (ERC20)", async function () {

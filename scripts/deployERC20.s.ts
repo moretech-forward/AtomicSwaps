@@ -8,11 +8,7 @@ async function main() {
   console.log(`MockTokenERC20 deployed to ${await erc20.getAddress()}`);
 
   const AtomicNativeSwap = await ethers.getContractFactory("AtomicERC20Swap");
-  const atomicNativeSwap = await AtomicNativeSwap.deploy(
-    erc20.target,
-    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
-    1000
-  );
+  const atomicNativeSwap = await AtomicNativeSwap.deploy();
 
   console.log(
     `AtomicERC20Swap deployed to ${await atomicNativeSwap.getAddress()}`

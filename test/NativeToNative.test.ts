@@ -32,11 +32,13 @@ describe("Native To Native", function () {
     const NativeA = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyA,
     });
-    const nativeA = await NativeA.deploy(partyB, amountA);
+    const nativeA = await NativeA.deploy();
 
-    await nativeA.deposit(hashKeyA, deadline, flagA, {
-      value: amountA,
-    });
+    await nativeA
+      .connect(partyA)
+      .createSwap(partyB, amountA, hashKeyA, deadline, flagA, {
+        value: amountA,
+      });
 
     return { nativeA, partyA, partyB, keyA, hashKeyA, deadline };
   }
@@ -53,11 +55,13 @@ describe("Native To Native", function () {
     const NativeB = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyB,
     });
-    const nativeB = await NativeB.deploy(partyA, amountB);
+    const nativeB = await NativeB.deploy();
 
-    await nativeB.connect(partyB).deposit(hashKeyA, deadline, flagB, {
-      value: amountB,
-    });
+    await nativeB
+      .connect(partyB)
+      .createSwap(partyA, amountB, hashKeyA, deadline, flagB, {
+        value: amountB,
+      });
 
     // A checks the contract B
     // If A is satisfied, he takes the funds from B's contract and publishes the key
@@ -71,7 +75,9 @@ describe("Native To Native", function () {
   });
 
   it("Successful withdrawal", async function () {
-    const { nativeA, partyA, deadline } = await loadFixture(deployA);
+    const { nativeA, partyA, deadline, partyB, hashKeyA } = await loadFixture(
+      deployA
+    );
 
     // B has not deployed his contract, after the deadline A can withdraw funds
     await time.increaseTo(deadline + 86400);
@@ -80,6 +86,13 @@ describe("Native To Native", function () {
       partyA,
       amountA
     );
+
+    // Attempting to create Swap a second time
+    await nativeA
+      .connect(partyA)
+      .createSwap(partyB, amountA, hashKeyA, deadline + 96400, flagA, {
+        value: amountA,
+      });
   });
 
   it("Unsuccessful withdrawal A (Native)", async function () {
@@ -96,22 +109,12 @@ describe("Native To Native", function () {
 
     const now = Date.now();
     await expect(
-      nativeA.connect(partyA).deposit(hashKeyA, now, flagB, {
-        value: amountA,
-      })
+      nativeA
+        .connect(partyA)
+        .createSwap(partyA, amountB, hashKeyA, now, flagB, {
+          value: amountA,
+        })
     ).to.be.revertedWith("Swap not yet expired");
-
-    console.log(now);
-    console.log(await nativeA.deadline());
-    console.log(
-      await hre.ethers.provider.getBlock(
-        await hre.ethers.provider.getBlockNumber()
-      )
-    );
-
-    const block = await hre.ethers.provider.getBlock(
-      await hre.ethers.provider.getBlockNumber()
-    );
 
     await time.increaseTo(deadline + 86400);
 

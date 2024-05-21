@@ -1,0 +1,17 @@
+[
+  "function confirmSwap(string _key)",
+  "function createSwap(address _token, address _otherParty, uint256 _value, uint256 _id, bytes32 _hashKey, uint256 _deadline, bool _flag)",
+  "function deadline() view returns (uint256)",
+  "function hashKey() view returns (bytes32)",
+  "function id() view returns (uint256)",
+  "function key() view returns (string)",
+  "function myAddr() view returns (address)",
+  "function onERC1155BatchReceived(address, address, uint256[], uint256[], bytes) returns (bytes4)",
+  "function onERC1155Received(address, address, uint256, uint256, bytes) returns (bytes4)",
+  "function otherParty() view returns (address)",
+  "function owner() view returns (address)",
+  "function token() view returns (address)",
+  "function transferOwnership(address newOwner)",
+  "function value() view returns (uint256)",
+  "function withdrawal()"
+]

@@ -19,3 +19,16 @@ npm install
 npx hardhat compile
 npx hardhat test
 ```
+
+## ABIs
+
+```sh
+npx hrabi parse abi\contracts\NativeSwap.sol\AtomicNativeSwap.json abi\AtomicNativeSwapABI.json
+npx hrabi parse abi\contracts\ERC20Swap.sol\AtomicERC20Swap.json abi\AtomicERC20SwapABI.json
+npx hrabi parse abi\contracts\ERC721Swap.sol\AtomicERC721Swap.json abi\AtomicERC721SwapABI.json
+npx hrabi parse abi\contracts\ERC1155Swap.sol\AtomicERC1155Swap.json abi\AtomicERC1155SwapABI.json
+
+npx hrabi parse abi\contracts\mocks\ERC20.sol\MockTokenERC20.json abi\ERC20TokenABI.json
+npx hrabi parse abi\contracts\mocks\ERC721.sol\MockTokenERC721.json abi\ERC721TokenABI.json
+npx hrabi parse abi\contracts\mocks\ERC1155.sol\MockTokenERC1155.json abi\ERC1155TokenABI.json
+```

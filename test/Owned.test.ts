@@ -31,9 +31,9 @@ describe("Owned", function () {
     const NativeA = await hre.ethers.getContractFactory("AtomicNativeSwap", {
       signer: partyA,
     });
-    const nativeA = await NativeA.deploy(partyB, amountA);
+    const nativeA = await NativeA.deploy();
 
-    await nativeA.deposit(hashKeyA, deadline, flagA, {
+    await nativeA.createSwap(partyB, amountA, hashKeyA, deadline, flagA, {
       value: amountA,
     });
 
@@ -44,9 +44,11 @@ describe("Owned", function () {
     const { nativeA, partyB, deadline, hashKeyA } = await loadFixture(deployA);
 
     await expect(
-      nativeA.connect(partyB).deposit(hashKeyA, deadline, flagA, {
-        value: amountA,
-      })
+      nativeA
+        .connect(partyB)
+        .createSwap(partyB, amountA, hashKeyA, deadline, flagA, {
+          value: amountA,
+        })
     ).to.be.revertedWith("UNAUTHORIZED");
   });
 
@@ -64,5 +66,13 @@ describe("Owned", function () {
     await expect(nativeA.connect(partyA).confirmSwap("")).to.be.revertedWith(
       "UNAUTHORIZED"
     );
+  });
+
+  it("Only an owner can call a transferOwnership", async function () {
+    const { nativeA, partyB } = await loadFixture(deployA);
+
+    await expect(
+      nativeA.connect(partyB).transferOwnership(partyB)
+    ).to.be.revertedWith("UNAUTHORIZED");
   });
 });
