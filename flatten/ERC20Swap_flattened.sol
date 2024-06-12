@@ -1,6 +1,4 @@
-
 // File: contracts/Atomic/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -40,8 +38,7 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -99,7 +96,6 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Atomic/interfaces/IERC20.sol
 
-
 pragma solidity ^0.8.23;
 
 /// @title ERC20 Token Standard Interface
@@ -122,8 +118,7 @@ interface IERC20 {
 
 // File: contracts/Atomic/ERC20Swap.sol
 
-
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.23;
 
 /// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
@@ -170,6 +165,7 @@ contract AtomicERC20Swap is AtomicSwap {
             token.transferFrom(owner, address(this), _amount),
             "Transfer failed"
         );
+        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.

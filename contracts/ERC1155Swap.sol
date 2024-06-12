@@ -53,6 +53,7 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         token.safeTransferFrom(owner, address(this), _id, _value, "0x00");
+        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC1155 token to the other party if the provided key matches the hash key.

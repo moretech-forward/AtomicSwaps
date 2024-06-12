@@ -49,6 +49,7 @@ contract AtomicERC20Swap is AtomicSwap {
             token.transferFrom(owner, address(this), _amount),
             "Transfer failed"
         );
+        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.

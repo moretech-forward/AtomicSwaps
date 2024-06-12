@@ -1,6 +1,4 @@
-
 // File: contracts/Atomic/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -40,8 +38,7 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -99,7 +96,6 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Atomic/TokenReceivers/ERC1155TokenReceiver.sol
 
-
 pragma solidity ^0.8.23;
 
 /// @notice A generic interface for a contract which properly accepts ERC1155 tokens.
@@ -127,7 +123,6 @@ abstract contract ERC1155TokenReceiver {
 
 // File: contracts/Atomic/interfaces/IERC1155.sol
 
-
 pragma solidity ^0.8.23;
 
 /// @title ERC1155 Token Standard Interface
@@ -150,8 +145,7 @@ interface IERC1155 {
 
 // File: contracts/Atomic/ERC1155Swap.sol
 
-
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.23;
 
 /// @title AtomicERC1155Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier and amount that can be exchanged for any other asset.
@@ -201,6 +195,7 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         token.safeTransferFrom(owner, address(this), _id, _value, "0x00");
+        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC1155 token to the other party if the provided key matches the hash key.

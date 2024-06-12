@@ -1,6 +1,4 @@
-
 // File: contracts/Atomic/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -40,8 +38,7 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -99,7 +96,6 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Atomic/TokenReceivers/ERC721TokenReceiver.sol
 
-
 pragma solidity ^0.8.23;
 
 /// @notice A generic interface for a contract which properly accepts ERC721 tokens.
@@ -117,7 +113,6 @@ abstract contract ERC721TokenReceiver {
 }
 
 // File: contracts/Atomic/interfaces/IERC721.sol
-
 
 pragma solidity ^0.8.23;
 
@@ -138,8 +133,7 @@ interface IERC721 {
 
 // File: contracts/Atomic/ERC721Swap.sol
 
-
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.23;
 
 /// @title AtomicERC721Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier that can be exchanged for any other asset.
@@ -182,6 +176,7 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         IERC721(_token).safeTransferFrom(owner, address(this), _id);
+        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC721 token to the other party if the provided key matches the hash key.

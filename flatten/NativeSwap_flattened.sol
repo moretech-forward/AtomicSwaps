@@ -1,6 +1,4 @@
-
 // File: contracts/Atomic/AtomicSwap/Owned.sol
-
 
 pragma solidity >=0.8.0;
 
@@ -40,8 +38,7 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -99,8 +96,7 @@ abstract contract AtomicSwap is Owned {
 
 // File: contracts/Atomic/NativeSwap.sol
 
-
-pragma solidity ^0.8.23;
+pragma solidity ^0.8.23;
 
 /// @title AtomicNativeSwap
 /// @notice This contract implements an atomic swap using native Ether transactions.
@@ -137,6 +133,7 @@ contract AtomicNativeSwap is AtomicSwap {
         // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
+        delete key;
     }
 
     /// @notice Confirms the swap and sends the Ether to the other party if the provided key matches the hash key.

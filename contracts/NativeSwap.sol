@@ -38,6 +38,7 @@ contract AtomicNativeSwap is AtomicSwap {
         // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
+        delete key;
     }
 
     /// @notice Confirms the swap and sends the Ether to the other party if the provided key matches the hash key.
