@@ -107,6 +107,8 @@ contract AtomicNativeSwap is AtomicSwap {
     /// @dev The contract holds this amount of Ether for the duration of the swap.
     uint256 public amount;
 
+    constructor(uint) payable {}
+
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the other party, amount, hash key, and deadline.
     /// @param _otherParty The address of the counterparty.

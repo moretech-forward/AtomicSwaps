@@ -132,6 +132,8 @@ contract AtomicERC20Swap is AtomicSwap {
     /// @dev Used when calling the deposit function.
     uint256 public amount;
 
+    constructor(uint) payable {}
+
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the token, other party, amount, hash key, and deadline.
     /// @param _token The address of the ERC20 token contract.

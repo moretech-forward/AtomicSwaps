@@ -162,6 +162,8 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
     /// @dev The contract interacts only with this token identifier.
     uint256 public id;
 
+    constructor(uint) payable {}
+
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the token, other party, token ID, amount, hash key, and deadline.
     /// @param _token The address of the ERC1155 token contract.
