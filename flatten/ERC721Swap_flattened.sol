@@ -1,4 +1,45 @@
+
+// File: contracts/Atomic/interfaces/IERC721.sol
+
+
+pragma solidity ^0.8.23;
+
+/// @title ERC721 Token Standard Interface
+/// @notice Defines the standard functions for ERC721 tokens
+/// @dev This interface is used to interact with ERC721 tokens, following the ERC721 standard.
+interface IERC721 {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) external;
+
+    function transferFrom(address from, address to, uint256 tokenId) external;
+
+    function safeMint(address to) external;
+}
+
+// File: contracts/Atomic/TokenReceivers/ERC721TokenReceiver.sol
+
+
+pragma solidity ^0.8.23;
+
+/// @notice A generic interface for a contract which properly accepts ERC721 tokens.
+abstract contract ERC721TokenReceiver {
+    /// @notice Handles the receipt of an NFT.
+    /// @return Returns the selector to confirm the interface and proper receipt.
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return ERC721TokenReceiver.onERC721Received.selector;
+    }
+}
+
 // File: contracts/Atomic/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -38,7 +79,8 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-pragma solidity >=0.8.0;
+
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -92,48 +134,19 @@ abstract contract AtomicSwap is Owned {
     /// @notice Fallback function to accept incoming ether.
     /// @dev Allows the contract to receive ether.
     receive() external payable {}
-}
 
-// File: contracts/Atomic/TokenReceivers/ERC721TokenReceiver.sol
-
-pragma solidity ^0.8.23;
-
-/// @notice A generic interface for a contract which properly accepts ERC721 tokens.
-abstract contract ERC721TokenReceiver {
-    /// @notice Handles the receipt of an NFT.
-    /// @return Returns the selector to confirm the interface and proper receipt.
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
-        return ERC721TokenReceiver.onERC721Received.selector;
+    function deleteGeneralInfo() internal {
+        delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
     }
-}
-
-// File: contracts/Atomic/interfaces/IERC721.sol
-
-pragma solidity ^0.8.23;
-
-/// @title ERC721 Token Standard Interface
-/// @notice Defines the standard functions for ERC721 tokens
-/// @dev This interface is used to interact with ERC721 tokens, following the ERC721 standard.
-interface IERC721 {
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) external;
-
-    function transferFrom(address from, address to, uint256 tokenId) external;
-
-    function safeMint(address to) external;
 }
 
 // File: contracts/Atomic/ERC721Swap.sol
 
-pragma solidity ^0.8.23;
+
+pragma solidity ^0.8.23;
 
 /// @title AtomicERC721Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier that can be exchanged for any other asset.
@@ -146,8 +159,6 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
     /// @notice Identifier of the token to be swapped.
     /// @dev The contract interacts only with this token identifier.
     uint256 public id;
-
-    constructor(uint) payable {}
 
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the token, other party, token ID, hash key, and deadline.
@@ -178,7 +189,6 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         IERC721(_token).safeTransferFrom(owner, address(this), _id);
-        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC721 token to the other party if the provided key matches the hash key.
@@ -195,7 +205,7 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         key = _key;
         // Transfer ERC721 token to caller (otherParty)
         token.safeTransferFrom(address(this), msg.sender, id);
-        delete deadline;
+        deleteInfo();
     }
 
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
@@ -203,6 +213,12 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
     /// @dev Only callable by the owner.
     function withdrawal() external override onlyOwner isSwap {
         token.safeTransferFrom(address(this), owner, id);
-        delete deadline;
+        deleteInfo();
+    }
+
+    function deleteInfo() internal {
+        deleteGeneralInfo();
+        delete token;
+        delete id;
     }
 }

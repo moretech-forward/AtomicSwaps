@@ -1,4 +1,6 @@
+
 // File: contracts/Atomic/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -38,7 +40,8 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-pragma solidity >=0.8.0;
+
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -92,11 +95,19 @@ abstract contract AtomicSwap is Owned {
     /// @notice Fallback function to accept incoming ether.
     /// @dev Allows the contract to receive ether.
     receive() external payable {}
+
+    function deleteGeneralInfo() internal {
+        delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
+    }
 }
 
 // File: contracts/Atomic/NativeSwap.sol
 
-pragma solidity ^0.8.23;
+
+pragma solidity ^0.8.23;
 
 /// @title AtomicNativeSwap
 /// @notice This contract implements an atomic swap using native Ether transactions.
@@ -106,8 +117,6 @@ contract AtomicNativeSwap is AtomicSwap {
     /// @notice Amount of Ether to be swapped.
     /// @dev The contract holds this amount of Ether for the duration of the swap.
     uint256 public amount;
-
-    constructor(uint) payable {}
 
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the other party, amount, hash key, and deadline.
@@ -135,7 +144,6 @@ contract AtomicNativeSwap is AtomicSwap {
         // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
-        delete key;
     }
 
     /// @notice Confirms the swap and sends the Ether to the other party if the provided key matches the hash key.
@@ -153,8 +161,7 @@ contract AtomicNativeSwap is AtomicSwap {
         key = _key;
         // Balance transfer to the caller (otherParty)
         payable(msg.sender).transfer(address(this).balance);
-        // Early reset deadline
-        delete deadline;
+        deleteInfo();
     }
 
     /// @notice Allows the owner to withdraw the Ether if the swap is not completed by the deadline.
@@ -162,7 +169,11 @@ contract AtomicNativeSwap is AtomicSwap {
     /// @dev Only callable by the owner.
     function withdrawal() external override onlyOwner isSwap {
         payable(owner).transfer(address(this).balance);
-        // Early reset deadline
-        delete deadline;
+        deleteInfo();
+    }
+
+    function deleteInfo() internal {
+        deleteGeneralInfo();
+        delete amount;
     }
 }

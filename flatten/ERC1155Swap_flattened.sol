@@ -1,4 +1,57 @@
+
+// File: contracts/Atomic/interfaces/IERC1155.sol
+
+
+pragma solidity ^0.8.23;
+
+/// @title ERC1155 Token Standard Interface
+/// @notice Defines the standard functions for ERC1155 tokens
+/// @dev This interface is used to interact with ERC1155 tokens, following the ERC1155 standard.
+interface IERC1155 {
+    function balanceOf(
+        address account,
+        uint256 id
+    ) external view returns (uint256);
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 value,
+        bytes calldata data
+    ) external;
+}
+
+// File: contracts/Atomic/TokenReceivers/ERC1155TokenReceiver.sol
+
+
+pragma solidity ^0.8.23;
+
+/// @notice A generic interface for a contract which properly accepts ERC1155 tokens.
+abstract contract ERC1155TokenReceiver {
+    function onERC1155Received(
+        address,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return ERC1155TokenReceiver.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return ERC1155TokenReceiver.onERC1155BatchReceived.selector;
+    }
+}
+
 // File: contracts/Atomic/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -38,7 +91,9 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
+
 pragma solidity >=0.8.0;
+
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -92,60 +147,22 @@ abstract contract AtomicSwap is Owned {
     /// @notice Fallback function to accept incoming ether.
     /// @dev Allows the contract to receive ether.
     receive() external payable {}
-}
 
-// File: contracts/Atomic/TokenReceivers/ERC1155TokenReceiver.sol
-
-pragma solidity ^0.8.23;
-
-/// @notice A generic interface for a contract which properly accepts ERC1155 tokens.
-abstract contract ERC1155TokenReceiver {
-    function onERC1155Received(
-        address,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
-        return ERC1155TokenReceiver.onERC1155Received.selector;
+    function deleteGeneralInfo() internal {
+        delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
     }
-
-    function onERC1155BatchReceived(
-        address,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    ) external virtual returns (bytes4) {
-        return ERC1155TokenReceiver.onERC1155BatchReceived.selector;
-    }
-}
-
-// File: contracts/Atomic/interfaces/IERC1155.sol
-
-pragma solidity ^0.8.23;
-
-/// @title ERC1155 Token Standard Interface
-/// @notice Defines the standard functions for ERC1155 tokens
-/// @dev This interface is used to interact with ERC1155 tokens, following the ERC1155 standard.
-interface IERC1155 {
-    function balanceOf(
-        address account,
-        uint256 id
-    ) external view returns (uint256);
-
-    function safeTransferFrom(
-        address from,
-        address to,
-        uint256 id,
-        uint256 value,
-        bytes calldata data
-    ) external;
 }
 
 // File: contracts/Atomic/ERC1155Swap.sol
 
+
 pragma solidity ^0.8.23;
+
+
+
 
 /// @title AtomicERC1155Swap
 /// @notice A contract for a cross-chain atomic swap that stores a token identifier and amount that can be exchanged for any other asset.
@@ -161,8 +178,6 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
     /// @notice Identifier of the token to be swapped.
     /// @dev The contract interacts only with this token identifier.
     uint256 public id;
-
-    constructor(uint) payable {}
 
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the token, other party, token ID, amount, hash key, and deadline.
@@ -197,7 +212,6 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         token.safeTransferFrom(owner, address(this), _id, _value, "0x00");
-        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC1155 token to the other party if the provided key matches the hash key.
@@ -214,8 +228,7 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
         key = _key;
         // Transfer ERC1155 token to caller (otherParty)
         token.safeTransferFrom(address(this), msg.sender, id, value, "");
-        // Early reset deadline
-        delete deadline;
+        deleteInfo();
     }
 
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
@@ -223,7 +236,13 @@ contract AtomicERC1155Swap is AtomicSwap, ERC1155TokenReceiver {
     /// @dev Only callable by the owner.
     function withdrawal() external override onlyOwner isSwap {
         token.safeTransferFrom(address(this), owner, id, value, "");
-        // Early reset deadline
-        delete deadline;
+        deleteInfo();
+    }
+
+    function deleteInfo() internal {
+        deleteGeneralInfo();
+        delete token;
+        delete id;
+        delete value;
     }
 }

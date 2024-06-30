@@ -62,10 +62,7 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         key = _key;
         // Transfer ERC721 token to caller (otherParty)
         token.safeTransferFrom(address(this), msg.sender, id);
-        delete deadline;
-        delete hashKey;
-        delete otherParty;
-        delete key;
+        deleteInfo();
     }
 
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.
@@ -73,6 +70,12 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
     /// @dev Only callable by the owner.
     function withdrawal() external override onlyOwner isSwap {
         token.safeTransferFrom(address(this), owner, id);
-        delete deadline;
+        deleteInfo();
+    }
+
+    function deleteInfo() internal {
+        deleteGeneralInfo();
+        delete token;
+        delete id;
     }
 }

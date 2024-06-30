@@ -1,4 +1,29 @@
+
+// File: contracts/Atomic/interfaces/IERC20.sol
+
+
+pragma solidity ^0.8.23;
+
+/// @title ERC20 Token Standard Interface
+/// @notice Defines the standard functions for ERC20 tokens
+/// @dev This interface is used to interact with ERC20 tokens, following the ERC20 standard.
+interface IERC20 {
+    function transfer(
+        address to,
+        uint256 amount
+    ) external returns (bool success);
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool success);
+
+    function balanceOf(address account) external view returns (uint256 balance);
+}
+
 // File: contracts/Atomic/AtomicSwap/Owned.sol
+
 
 pragma solidity >=0.8.0;
 
@@ -38,7 +63,8 @@ abstract contract Owned {
 
 // File: contracts/Atomic/AtomicSwap/AtomicSwap.sol
 
-pragma solidity >=0.8.0;
+
+pragma solidity >=0.8.0;
 
 /// @title A contract for atomic swapping of assets with access control.
 /// @notice Provides mechanisms for atomic swap transactions with time-bound constraints and access control.
@@ -92,33 +118,19 @@ abstract contract AtomicSwap is Owned {
     /// @notice Fallback function to accept incoming ether.
     /// @dev Allows the contract to receive ether.
     receive() external payable {}
-}
 
-// File: contracts/Atomic/interfaces/IERC20.sol
-
-pragma solidity ^0.8.23;
-
-/// @title ERC20 Token Standard Interface
-/// @notice Defines the standard functions for ERC20 tokens
-/// @dev This interface is used to interact with ERC20 tokens, following the ERC20 standard.
-interface IERC20 {
-    function transfer(
-        address to,
-        uint256 amount
-    ) external returns (bool success);
-
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amount
-    ) external returns (bool success);
-
-    function balanceOf(address account) external view returns (uint256 balance);
+    function deleteGeneralInfo() internal {
+        delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
+    }
 }
 
 // File: contracts/Atomic/ERC20Swap.sol
 
-pragma solidity ^0.8.23;
+
+pragma solidity ^0.8.23;
 
 /// @title AtomicERC20Swap
 /// @notice This contract facilitates atomic swaps of ERC20 tokens using a secret key for completion.
@@ -131,8 +143,6 @@ contract AtomicERC20Swap is AtomicSwap {
     /// @notice Amount of tokens for swap.
     /// @dev Used when calling the deposit function.
     uint256 public amount;
-
-    constructor(uint) payable {}
 
     /// @notice Creates a new atomic swap with the specified parameters.
     /// @dev Initializes the swap with the token, other party, amount, hash key, and deadline.
@@ -167,7 +177,6 @@ contract AtomicERC20Swap is AtomicSwap {
             token.transferFrom(owner, address(this), _amount),
             "Transfer failed"
         );
-        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.
@@ -185,7 +194,7 @@ contract AtomicERC20Swap is AtomicSwap {
         // Balance transfer of ERC20 token to the caller (otherParty)
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(msg.sender, balance), "Transfer failed");
-        delete deadline;
+        deleteInfo();
     }
 
     /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.
@@ -194,6 +203,12 @@ contract AtomicERC20Swap is AtomicSwap {
     function withdrawal() external override onlyOwner isSwap {
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(owner, balance), "Transfer failed");
-        delete deadline;
+        deleteInfo();
+    }
+
+    function deleteInfo() internal {
+        deleteGeneralInfo();
+        delete token;
+        delete amount;
     }
 }

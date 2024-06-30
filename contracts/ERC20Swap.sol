@@ -66,10 +66,7 @@ contract AtomicERC20Swap is AtomicSwap {
         // Balance transfer of ERC20 token to the caller (otherParty)
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(msg.sender, balance), "Transfer failed");
-        delete deadline;
-        delete hashKey;
-        delete otherParty;
-        delete key;
+        deleteInfo();
     }
 
     /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.
@@ -78,6 +75,12 @@ contract AtomicERC20Swap is AtomicSwap {
     function withdrawal() external override onlyOwner isSwap {
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(owner, balance), "Transfer failed");
-        delete deadline;
+        deleteInfo();
+    }
+
+    function deleteInfo() internal {
+        deleteGeneralInfo();
+        delete token;
+        delete amount;
     }
 }

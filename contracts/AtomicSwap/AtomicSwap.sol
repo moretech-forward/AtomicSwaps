@@ -55,4 +55,11 @@ abstract contract AtomicSwap is Owned {
     /// @notice Fallback function to accept incoming ether.
     /// @dev Allows the contract to receive ether.
     receive() external payable {}
+
+    function deleteGeneralInfo() internal {
+        delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
+    }
 }
