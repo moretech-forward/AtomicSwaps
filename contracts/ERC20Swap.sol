@@ -49,7 +49,6 @@ contract AtomicERC20Swap is AtomicSwap {
             token.transferFrom(owner, address(this), _amount),
             "Transfer failed"
         );
-        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC20 tokens to the other party if the provided key matches the hash key.
@@ -68,6 +67,9 @@ contract AtomicERC20Swap is AtomicSwap {
         uint256 balance = token.balanceOf(address(this));
         require(token.transfer(msg.sender, balance), "Transfer failed");
         delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
     }
 
     /// @notice Allows the owner to withdraw the tokens if the swap is not completed by the deadline.

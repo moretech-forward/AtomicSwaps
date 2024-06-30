@@ -46,7 +46,6 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
         IERC721(_token).safeTransferFrom(owner, address(this), _id);
-        delete key;
     }
 
     /// @notice Confirms the swap and transfers the ERC721 token to the other party if the provided key matches the hash key.
@@ -64,6 +63,9 @@ contract AtomicERC721Swap is AtomicSwap, ERC721TokenReceiver {
         // Transfer ERC721 token to caller (otherParty)
         token.safeTransferFrom(address(this), msg.sender, id);
         delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
     }
 
     /// @notice Allows the owner to withdraw the token if the swap is not completed by the deadline.

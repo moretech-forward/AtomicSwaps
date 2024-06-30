@@ -38,7 +38,6 @@ contract AtomicNativeSwap is AtomicSwap {
         // done to protect the swap receiver (see documentation)
         if (_flag) deadline = _deadline + DAY;
         else deadline = _deadline;
-        delete key;
     }
 
     /// @notice Confirms the swap and sends the Ether to the other party if the provided key matches the hash key.
@@ -58,6 +57,10 @@ contract AtomicNativeSwap is AtomicSwap {
         payable(msg.sender).transfer(address(this).balance);
         // Early reset deadline
         delete deadline;
+        delete hashKey;
+        delete otherParty;
+        delete key;
+        delete amount;
     }
 
     /// @notice Allows the owner to withdraw the Ether if the swap is not completed by the deadline.
